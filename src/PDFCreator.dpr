@@ -30,7 +30,7 @@ uses
   zlibpasEx in 'zlibpasEx.pas',
   rarfile in 'rarfile.pas',
   unrardll in 'unrardll.pas',
-  arcbase in 'H:\BrickInventory_src\BricksInventory\arcbase.pas';
+  arcbase in 'arcbase.pas';
 
 {$R *.res}
 
