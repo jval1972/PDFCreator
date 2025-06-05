@@ -100,7 +100,7 @@ Conditionals=
 DebugSourceDirs=
 UsePackages=0
 [Parameters]
-RunParams="C:\Users\Δημήτριος\Downloads\Κόμικς\COMICSCANS\Action Comics\Action Comics 001-XXX (1938-20xx)\Action Comics 231 (08-1957).cbr"
+RunParams="C:\Users\Δημήτριος\Downloads\Κόμικς\COMICSCANS\Action Comics\Action Comics 001-XXX (1938-20xx)\actionc.txt"
 HostApplication=
 Launcher=
 UseLauncher=0

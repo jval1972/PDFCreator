@@ -76,6 +76,20 @@ begin
         l2.Free;
       end;
     end
+    else if DirectoryExists(s) and (s <> '') then
+    begin
+      if s[Length(s)] <> '\' then
+        s := s + '\';
+      l2 := myfindfiles(s + '*.cb?');
+      for j := 0 to l2.Count - 1 do
+      begin
+        s := l2.Strings[j];
+        ext := LowerCase(ExtractFileExt(s));
+        if (ext = '.cbr') or (ext = '.cbz') then
+          l.Add(s)
+      end;
+      l2.Free;
+    end
     else if (Pos('*', s) > 0) or (Pos('?', s) > 0) then
     begin
       l2 := myfindfiles(s);
