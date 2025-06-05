@@ -32,18 +32,24 @@ begin
   if RightStr(UpperCase(l[0]), 4) = '.PNG' then
   begin
     PNG := TPNGObject.Create;
-    PNG.LoadFromFile(folder + l[0]);
-    w := PNG.Width;
-    h := PNG.Height;
-    PNG.Free;
+    try
+      PNG.LoadFromFile(folder + l[0]);
+      w := PNG.Width;
+      h := PNG.Height;
+    finally
+      PNG.Free;
+    end;
   end
   else
   begin
     JPG := TJPEGImage.Create;
-    JPG_ReadWebp(JPG, folder + l[0]);
-    w := JPG.Width;
-    h := JPG.Height;
-    JPG.Free;
+    try
+      JPG_ReadWebp(JPG, folder + l[0]);
+      w := JPG.Width;
+      h := JPG.Height;
+    finally
+      JPG.Free;
+    end;
   end;
 
   obPDF := TPdfDocument.Create(false, 0, false);
@@ -63,34 +69,39 @@ begin
       if RightStr(UpperCase(l[i]), 4) = '.PNG' then
       begin
         PNG := TPNGObject.Create;
-        PNG.LoadFromFile(folder + l[i]);
-        w := PNG.Width;
-        h := PNG.Height;
+        try
+          PNG.LoadFromFile(folder + l[i]);
+          w := PNG.Width;
+          h := PNG.Height;
 
-        pdfimage := TPdfImage.Create(obPDF, PNG, true);
-        obPage := obPDF.AddPage;
-        obPage.PageWidth := w;
-        obPage.PageHeight := h;
-        sname := GetImgName(i) + '.png';
-        obPDF.AddXObject(sname, pdfimage);
-        obPDF.Canvas.DrawXObject(0, 0, w, h, sname);
-        PNG.Free;
+          pdfimage := TPdfImage.Create(obPDF, PNG, true);
+          obPage := obPDF.AddPage;
+          obPage.PageWidth := w;
+          obPage.PageHeight := h;
+          sname := GetImgName(i) + '.png';
+          obPDF.AddXObject(sname, pdfimage);
+          obPDF.Canvas.DrawXObject(0, 0, w, h, sname);
+        finally
+          PNG.Free;
+        end;
       end
       else
       begin
         JPG := TJPEGImage.Create;
-        if JPG_ReadWebp(JPG, folder + l[i]) then
-        begin
-          JPG.CompressionQuality := optjpegcompression;
-          JPG.SaveToStream(m);
-        end
-        else
-          m.LoadFromFile(folder + l[i]);
+        try
+          if JPG_ReadWebp(JPG, folder + l[i]) then
+          begin
+            JPG.CompressionQuality := optjpegcompression;
+            JPG.SaveToStream(m);
+          end
+          else
+            m.LoadFromFile(folder + l[i]);
 
-        w := JPG.Width;
-        h := JPG.Height;
-
-        JPG.Free;
+          w := JPG.Width;
+          h := JPG.Height;
+        finally
+          JPG.Free;
+        end;
 
         pdfimage := TPdfImage.CreateJpegDirect(obPDF, m);
         obPage := obPDF.AddPage;
@@ -133,18 +144,24 @@ begin
     if RightStr(UpperCase(l[i]), 4) = '.PNG' then
     begin
       PNG := TPNGObject.Create;
-      PNG.LoadFromFile(folder + l[i]);
-      w := PNG.Width;
-      h := PNG.Height;
-      PNG.Free;
+      try
+        PNG.LoadFromFile(folder + l[i]);
+        w := PNG.Width;
+        h := PNG.Height;
+      finally
+        PNG.Free;
+      end;
     end
     else
     begin
       JPG := TJPEGImage.Create;
-      JPG_ReadWebp(JPG, folder + l[i]);
-      w := JPG.Width;
-      h := JPG.Height;
-      JPG.Free;
+      try
+        JPG_ReadWebp(JPG, folder + l[i]);
+        w := JPG.Width;
+        h := JPG.Height;
+      finally
+        JPG.Free;
+      end;
     end;
     if optautosplitimages and (w > h) then
       w := w div 2;
@@ -171,52 +188,57 @@ begin
       if RightStr(UpperCase(l[i]), 4) = '.PNG' then
       begin
         PNG := TPNGObject.Create;
-        PNG.LoadFromFile(folder + l[i]);
-        w := PNG.Width;
-        h := PNG.Height;
+        try
+          PNG.LoadFromFile(folder + l[i]);
+          w := PNG.Width;
+          h := PNG.Height;
 
-        pdfimage := TPdfImage.Create(obPDF, PNG, true);
-        obPage := obPDF.AddPage;
-        obPage.PageWidth := maxw;
-        obPage.PageHeight := maxh;
-        sname := GetImgName(i) + '.png';
-        obPDF.AddXObject(sname, pdfimage);
-
-        if optautosplitimages and (w > h) then
-        begin
-          obPDF.Canvas.DrawXObject(0, 0, 2 * maxw, maxh, sname);
+          pdfimage := TPdfImage.Create(obPDF, PNG, true);
           obPage := obPDF.AddPage;
           obPage.PageWidth := maxw;
           obPage.PageHeight := maxh;
-          obPDF.Canvas.DrawXObject(-maxw, 0, 2 * maxw, maxh, sname);
-        end
-        else
-        begin
-          if w > h then
+          sname := GetImgName(i) + '.png';
+          obPDF.AddXObject(sname, pdfimage);
+
+          if optautosplitimages and (w > h) then
           begin
-            obPage.PageWidth := 2 * maxw;
             obPDF.Canvas.DrawXObject(0, 0, 2 * maxw, maxh, sname);
+            obPage := obPDF.AddPage;
+            obPage.PageWidth := maxw;
+            obPage.PageHeight := maxh;
+            obPDF.Canvas.DrawXObject(-maxw, 0, 2 * maxw, maxh, sname);
           end
           else
-            obPDF.Canvas.DrawXObject(0, 0, maxw, maxh, sname);
+          begin
+            if w > h then
+            begin
+              obPage.PageWidth := 2 * maxw;
+              obPDF.Canvas.DrawXObject(0, 0, 2 * maxw, maxh, sname);
+            end
+            else
+              obPDF.Canvas.DrawXObject(0, 0, maxw, maxh, sname);
+          end;
+        finally
+          PNG.Free;
         end;
-        PNG.Free;
       end
       else
       begin
         JPG := TJPEGImage.Create;
-        if JPG_ReadWebp(JPG, folder + l[i]) then
-        begin
-          JPG.CompressionQuality := optjpegcompression;
-          JPG.SaveToStream(m);
-        end
-        else
-          m.LoadFromFile(folder + l[i]);
+        try
+          if JPG_ReadWebp(JPG, folder + l[i]) then
+          begin
+            JPG.CompressionQuality := optjpegcompression;
+            JPG.SaveToStream(m);
+          end
+          else
+            m.LoadFromFile(folder + l[i]);
 
-        w := JPG.Width;
-        h := JPG.Height;
-
-        JPG.Free;
+          w := JPG.Width;
+          h := JPG.Height;
+        finally
+          JPG.Free;
+        end;
 
         pdfimage := TPdfImage.CreateJpegDirect(obPDF, m);
         obPage := obPDF.AddPage;

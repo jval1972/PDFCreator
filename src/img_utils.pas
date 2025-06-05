@@ -1026,7 +1026,7 @@ function ext2typ(const ext: string): imagetype_t;
 begin
   if (ext = '.jpg') or (ext = '.jpeg') then
     Result := it_jpg
-  else if (ext = '.png') or (ext = '.webp') then
+  else if (ext = '.png') or (ext = '.webp') or (ext = '.tif') or (ext = '.tiff') then
     Result := it_png
   else if ext = '.bmp' then
     Result := it_bmp

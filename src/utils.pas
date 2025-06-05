@@ -410,7 +410,7 @@ begin
   begin
     file1 := arc.Files[j];
     ext2 := LowerCase(ExtractFileExt(file1));
-    if (ext2 = '.png') or (ext2 = '.jpg') or (ext2 = '.jpeg') or (ext2 = '.webp') or (ext2 = '.bmp') then
+    if (ext2 = '.png') or (ext2 = '.jpg') or (ext2 = '.jpeg') or (ext2 = '.webp') or (ext2 = '.bmp') or (ext2 = '.tif') or (ext2 = '.tiff') then
     begin
       l1.Add(file1);
       file2 := I_NewTempFile('CBRZ2PDF' + IntToStr4(cnt) + ext2);
@@ -435,7 +435,7 @@ begin
   begin
     file1 := l2.Strings[j];
     ext2 := LowerCase(ExtractFileExt(file1));
-    if ext2 = '.webp' then
+    if (ext2 = '.webp') or (ext2 = '.tif') or (ext2 = '.tiff') then
     begin
       JPG := TJPEGImage.Create;
       JPG_ReadWebp(JPG, file1);

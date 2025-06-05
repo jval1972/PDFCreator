@@ -32,7 +32,12 @@ uses
   zlibpasEx in 'zlibpasEx.pas',
   rarfile in 'rarfile.pas',
   unrardll in 'unrardll.pas',
-  arcbase in 'arcbase.pas';
+  arcbase in 'arcbase.pas',
+  LibDelphi in 'LibDelphi.pas',
+  LibJpegDelphi in 'LibJpegDelphi.pas',
+  LibTiffDelphi in 'LibTiffDelphi.pas',
+  ZLibDelphi in 'ZLibDelphi.pas',
+  xTIFF in 'xTIFF.pas';
 
 var
   i, j: integer;
