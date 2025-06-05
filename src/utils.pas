@@ -15,6 +15,8 @@ function CountNumbers(const s: string): integer;
 
 function IntToStr4(const x: integer): string;
 
+function IntToStr8(const x: integer): string;
+
 function fopen(var f: file; const FileName: string; const mode: integer): boolean;
 
 function fsize(const FileName: string): integer;
@@ -134,6 +136,13 @@ function IntToStr4(const x: integer): string;
 begin
   Result := IntToStr(x);
   while Length(Result) < 4 do
+    Result := '0' + Result;
+end;
+
+function IntToStr8(const x: integer): string;
+begin
+  Result := IntToStr(x);
+  while Length(Result) < 8 do
     Result := '0' + Result;
 end;
 
