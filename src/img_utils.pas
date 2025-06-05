@@ -9,7 +9,7 @@ type
   TRGBArray = array[Word] of TRGBTriple;
   pRGBArray = ^TRGBArray;
 
-procedure ResizeImage(FileName, FileOut: string; MaxWidth: Integer; Ql: Integer);
+procedure ResizeJPGImage(FileName, FileOut: string; MaxWidth: Integer; Ql: Integer);
 
 procedure cropjpeg(var j: TJPEGImage; const l, t, r, d: integer);
 
@@ -278,7 +278,7 @@ end; {SaveJPEGPictureFile}
 {---------------------------------------------------------------------------
 -----------------------}
 
-procedure ResizeImage(FileName, FileOut: string; MaxWidth: Integer; Ql: Integer);
+procedure ResizeJPGImage(FileName, FileOut: string; MaxWidth: Integer; Ql: Integer);
 var
   OldBitmap: TBitmap;
   NewBitmap: TBitmap;
