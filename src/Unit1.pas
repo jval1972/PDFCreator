@@ -445,6 +445,7 @@ begin
   backpage := '';
   FrontPaintBox.Invalidate;
   BackPaintBox.Invalidate;
+  dragitem := -1;
 end;
 
 procedure TForm1.AdjustLayout;
