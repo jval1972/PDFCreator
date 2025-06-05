@@ -62,9 +62,16 @@ type
     procedure BackPaintBoxPaint(Sender: TObject);
     procedure BackPaintBoxDblClick(Sender: TObject);
     procedure SplitCheckBoxClick(Sender: TObject);
+    procedure ImageListBox1DragOver(Sender, Source: TObject; X, Y: Integer;
+      State: TDragState; var Accept: Boolean);
+    procedure ImageListBox1DragDrop(Sender, Source: TObject; X,
+      Y: Integer);
+    procedure ImageListBox1ItemStartDrag(Sender: TObject;
+      ItemIndex: Integer; var AllowDrag: Boolean);
   private
     { Private declarations }
     frontpage, backpage: string;
+    dragitem: integer;
     procedure PageDraw(const pb: TPaintBox; const spage: string);
     function AddImageToList(const lb: TAdvSmoothImageListBox; const imgpath: string): Boolean;
     procedure ShowSelectedImgInfo(itemindex: integer);
@@ -116,6 +123,7 @@ begin
   ShowSelectedImgInfo(-1);
   frontpage := '';
   backpage := '';
+  dragitem := -1;
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
@@ -691,6 +699,63 @@ begin
   if BackCheckBox.Checked then
     if FileExists(backpage) then
       Result := backpage;
+end;
+
+procedure TForm1.ImageListBox1DragOver(Sender, Source: TObject; X,
+  Y: Integer; State: TDragState; var Accept: Boolean);
+begin
+  Accept := Source = ImageListBox1;
+  if Accept then
+    Accept := ImageListBox1.FindItemOnXY(X, Y) >= 0;
+end;
+
+procedure TForm1.ImageListBox1DragDrop(Sender, Source: TObject; X,
+  Y: Integer);
+var
+  dst: integer;
+  src: integer;
+  scrit: TAdvSmoothImageListBoxItem;
+  l: TStringList;
+  i: integer;
+  sitem: string;
+begin
+  dst := ImageListBox1.FindItemOnXY(X, Y);
+
+  src := dragitem;
+  dragitem := -1;
+
+  if dst < 0 then
+    Exit;
+
+  if src < 0 then
+    Exit;
+
+  if src = dst then
+    Exit;
+
+  l := TStringList.Create;
+  for i := 0 to ImageListBox1.Items.Count - 1 do
+    l.Add(ImageListBox1.Items[i].Location);
+  sitem := l.Strings[src];
+  if dst < src then
+  begin
+    l.Insert(dst, sitem);
+    l.Delete(src + 1)
+  end
+  else
+  begin
+    l.Insert(dst + 1, sitem);
+    l.Delete(src);
+  end;
+  AddFilesToList(l);
+  l.Free;
+end;
+
+procedure TForm1.ImageListBox1ItemStartDrag(Sender: TObject;
+  ItemIndex: Integer; var AllowDrag: Boolean);
+begin
+  dragitem := ItemIndex;
+  AllowDrag := dragitem >= 0;
 end;
 
 end.

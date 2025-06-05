@@ -4959,8 +4959,11 @@ object Form1: TForm1
       ZoomOnTop = True
       OnItemSelect = ImageListBox1ItemSelect
       OnItemHint = ImageListBox1ItemHint
+      OnItemStartDrag = ImageListBox1ItemStartDrag
       Align = alClient
       TabOrder = 0
+      OnDragDrop = ImageListBox1DragDrop
+      OnDragOver = ImageListBox1DragOver
       TMSStyle = 21
       object ProgressPanel: TPanel
         Left = 0
