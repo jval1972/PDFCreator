@@ -19,10 +19,20 @@ procedure SplitPNG(fn: string);
 
 function GetStretchRect(const ref: TRect; const w, h: integer): TRect;
 
+function LoadBitmapFromFile(const fname: string): TBitmap;
+
+function SaveBitmapToFile(const bm: TBitmap; const fname: string): boolean;
+
+function RotateImageFile90DegreesCounterClockwise(const finp, fout: string): boolean;
+
+function RotateImageFile90DegreesClockwise(const finp, fout: string): boolean;
+
+function RotateImageFile180Degrees(const finp, fout: string): boolean;
+
 implementation
 
 uses
-  options, webp;
+  options, utils, webp;
 
 procedure SplitJPG(fn: string);
 var
@@ -420,6 +430,805 @@ begin
     Result.Left := ref.Left + (rw - l) div 2;
     Result.Right := Result.Left + l;
   end;
+end;
+
+procedure RotateBitmap90DegreesCounterClockwise(var ABitmap: TBitmap);
+const
+  BitsPerByte = 8;
+var
+  PbmpInfoR: PBitmapInfoHeader;
+  bmpBuffer, bmpBufferR: PByte;
+  MemoryStream, MemoryStreamR: TMemoryStream;
+  PbmpBuffer, PbmpBufferR: PByte;
+  BytesPerPixel, PixelsPerByte: LongInt;
+  BytesPerScanLine, BytesPerScanLineR: LongInt;
+  PaddingBytes: LongInt;
+  BitmapOffset: LongInt;
+  BitCount: LongInt;
+  WholeBytes, ExtraPixels: LongInt;
+  SignificantBytes, SignificantBytesR: LongInt;
+  ColumnBytes: LongInt;
+  AtLeastEightBitColor: Boolean;
+  T: LongInt;
+
+  procedure NonIntegralByteRotate;
+  var
+    X, Y: LongInt;
+    I: LongInt;
+    MaskBits, CurrentBits: Byte;
+    FirstMask, LastMask: Byte;
+    PFirstScanLine: PByte;
+    FirstIndex, CurrentBitIndex: LongInt;
+    ShiftRightAmount, ShiftRightStart: LongInt;
+  begin
+    Inc(PbmpBuffer, BytesPerScanLine * (PbmpInfoR^.biHeight - 1) );
+    PFirstScanLine := bmpBufferR;
+    FirstIndex := BitsPerByte - BitCount;
+    LastMask := 1 shl BitCount - 1;
+    FirstMask := LastMask shl FirstIndex;
+    CurrentBits := FirstMask;
+    CurrentBitIndex := FirstIndex;
+    ShiftRightStart := BitCount * (PixelsPerByte - 1);
+    for Y := 1 to PbmpInfoR^.biHeight do
+    begin
+      PbmpBufferR := PFirstScanLine;
+      for X := 1 to WholeBytes do
+      begin
+        MaskBits := FirstMask;
+        ShiftRightAmount := ShiftRightStart;
+        for I := 1 to PixelsPerByte do
+        begin
+          PbmpBufferR^ := ( PbmpBufferR^ and not CurrentBits ) or ((PbmpBuffer^ and MaskBits) shr ShiftRightAmount shl CurrentBitIndex);
+          MaskBits := MaskBits shr BitCount;
+          Inc(PbmpBufferR, BytesPerScanLineR);
+          Dec(ShiftRightAmount, BitCount);
+        end;
+        Inc(PbmpBuffer);
+      end;
+      if ExtraPixels <> 0 then
+      begin
+        MaskBits := FirstMask;
+        ShiftRightAmount := ShiftRightStart;
+        for I := 1 to ExtraPixels do
+        begin
+          PbmpBufferR^ := ( PbmpBufferR^ and not CurrentBits ) or ((PbmpBuffer^ and MaskBits) shr ShiftRightAmount shl CurrentBitIndex);
+          MaskBits := MaskBits shr BitCount;
+          Inc(PbmpBufferR, BytesPerScanLineR);
+          Dec(ShiftRightAmount, BitCount);
+        end;
+        Inc(PbmpBuffer);
+      end;
+      Inc(PbmpBuffer, PaddingBytes);
+      Dec(PbmpBuffer, BytesPerScanLine shl 1);
+      if CurrentBits = LastMask then
+      begin
+        CurrentBits := FirstMask;
+        CurrentBitIndex := FirstIndex;
+        Inc(PFirstScanLine);
+      end
+      else
+      begin
+        CurrentBits := CurrentBits shr BitCount;
+        Dec(CurrentBitIndex, BitCount);
+      end;
+    end;
+  end;
+
+  procedure IntegralByteRotate;
+  var
+    X, Y: LongInt;
+  begin
+    Inc(PbmpBufferR, SignificantBytesR - BytesPerPixel);
+    for Y := 1 to PbmpInfoR^.biHeight do
+    begin
+      for X := 1 to PbmpInfoR^.biWidth do
+      begin
+        Move(PbmpBuffer^, PbmpBufferR^, BytesPerPixel);
+
+        Inc(PbmpBuffer, BytesPerPixel);
+
+        Inc(PbmpBufferR, BytesPerScanLineR);
+      end;
+      Inc(PbmpBuffer, PaddingBytes);
+      Dec(PbmpBufferR, ColumnBytes + BytesPerPixel);
+    end;
+  end;
+
+begin
+  MemoryStream := TMemoryStream.Create;
+  ABitmap.SaveToStream(MemoryStream);
+  ABitmap.Free;
+  bmpBuffer := MemoryStream.Memory;
+  BitmapOffset := PBitmapFileHeader(bmpBuffer)^.bfOffBits;
+  Inc(bmpBuffer, SizeOf(TBitmapFileHeader));
+  PbmpInfoR := PBitmapInfoHeader(bmpBuffer);
+  bmpBuffer := MemoryStream.Memory;
+  Inc(bmpBuffer, BitmapOffset);
+  PbmpBuffer := bmpBuffer;
+  with PbmpInfoR^ do
+  begin
+    BitCount := biBitCount;
+    BytesPerScanLine := ((((biWidth * BitCount) + 31) div 32) * SizeOf(DWORD));
+    BytesPerScanLineR := ((((biHeight * BitCount) + 31) div 32) * SizeOf(DWORD));
+    AtLeastEightBitColor := BitCount >= BitsPerByte;
+    if AtLeastEightBitColor then
+    begin
+      BytesPerPixel := biBitCount shr 3;
+      SignificantBytes := biWidth * BitCount shr 3;
+      SignificantBytesR := biHeight * BitCount shr 3;
+      PaddingBytes := BytesPerScanLine - SignificantBytes;
+      ColumnBytes := BytesPerScanLineR * biWidth;
+    end
+    else
+    begin
+      PixelsPerByte := SizeOf(Byte) * BitsPerByte div BitCount;
+      WholeBytes := biWidth div PixelsPerByte;
+      ExtraPixels := biWidth mod PixelsPerByte;
+      PaddingBytes := BytesPerScanLine - WholeBytes;
+      if ExtraPixels <> 0 then Dec(PaddingBytes);
+    end;
+    MemoryStreamR := TMemoryStream.Create;
+    MemoryStreamR.SetSize(BitmapOffset + BytesPerScanLineR * biWidth);
+  end;
+  MemoryStream.Seek(0, soFromBeginning);
+  MemoryStreamR.CopyFrom(MemoryStream, BitmapOffset);
+  bmpBufferR := MemoryStreamR.Memory;
+  Inc(bmpBufferR, BitmapOffset);
+  PbmpBufferR := bmpBufferR;
+  if AtLeastEightBitColor then
+    IntegralByteRotate
+  else
+    NonIntegralByteRotate;
+  MemoryStream.Free;
+  PbmpBufferR := MemoryStreamR.Memory;
+  Inc( PbmpBufferR, SizeOf(TBitmapFileHeader) );
+  PbmpInfoR := PBitmapInfoHeader(PbmpBufferR);
+  with PbmpInfoR^ do
+  begin
+    T := biHeight;
+    biHeight := biWidth;
+    biWidth := T;
+    biSizeImage := 0;
+  end;
+  ABitmap := TBitmap.Create;
+  MemoryStreamR.Seek(0, soFromBeginning);
+  ABitmap.LoadFromStream(MemoryStreamR);
+  MemoryStreamR.Free;
+end;
+
+procedure RotateBitmap90DegreesClockwise(var ABitmap: TBitmap);
+const
+  BitsPerByte = 8;
+var
+  PbmpInfoR: PBitmapInfoHeader;
+  bmpBuffer, bmpBufferR: PByte;
+  MemoryStream, MemoryStreamR: TMemoryStream;
+  PbmpBuffer, PbmpBufferR: PByte;
+  BytesPerPixel, PixelsPerByte: LongInt;
+  BytesPerScanLine, BytesPerScanLineR: LongInt;
+  PaddingBytes: LongInt;
+  BitmapOffset: LongInt;
+  BitCount: LongInt;
+  WholeBytes, ExtraPixels: LongInt;
+  SignificantBytes: LongInt;
+  ColumnBytes: LongInt;
+  AtLeastEightBitColor: Boolean;
+  T: LongInt;
+
+  procedure NonIntegralByteRotate;
+  var
+    X, Y: LongInt;
+    I: LongInt;
+    MaskBits, CurrentBits: Byte;
+    FirstMask, LastMask: Byte;
+    PLastScanLine: PByte;
+    FirstIndex, CurrentBitIndex: LongInt;
+    ShiftRightAmount, ShiftRightStart: LongInt;
+  begin
+    PLastScanLine := bmpBufferR;
+    Inc(PLastScanLine, BytesPerScanLineR * (PbmpInfoR^.biWidth - 1) );
+    FirstIndex := BitsPerByte - BitCount;
+    LastMask := 1 shl BitCount - 1;
+    FirstMask := LastMask shl FirstIndex;
+    CurrentBits := FirstMask;
+    CurrentBitIndex := FirstIndex;
+    ShiftRightStart := BitCount * (PixelsPerByte - 1);
+    for Y := 1 to PbmpInfoR^.biHeight do
+    begin
+      PbmpBufferR := PLastScanLine;
+      for X := 1 to WholeBytes do
+      begin
+        MaskBits := FirstMask;
+        ShiftRightAmount := ShiftRightStart;
+        for I := 1 to PixelsPerByte do
+        begin
+          PbmpBufferR^ := ( PbmpBufferR^ and not CurrentBits ) or ((PbmpBuffer^ and MaskBits) shr ShiftRightAmount shl CurrentBitIndex);
+          MaskBits := MaskBits shr BitCount;
+          Dec(PbmpBufferR, BytesPerScanLineR);
+          Dec(ShiftRightAmount, BitCount);
+        end;
+        Inc(PbmpBuffer);
+      end;
+      if ExtraPixels <> 0 then
+      begin
+        MaskBits := FirstMask;
+        ShiftRightAmount := ShiftRightStart;
+        for I := 1 to ExtraPixels do
+        begin
+          PbmpBufferR^ := (PbmpBufferR^ and not CurrentBits) or ((PbmpBuffer^ and MaskBits) shr ShiftRightAmount shl CurrentBitIndex);
+          MaskBits := MaskBits shr BitCount;
+          Dec(PbmpBufferR, BytesPerScanLineR);
+          Dec(ShiftRightAmount, BitCount);
+        end;
+        Inc(PbmpBuffer);
+      end;
+      Inc(PbmpBuffer, PaddingBytes);
+      if CurrentBits = LastMask then
+      begin
+        CurrentBits := FirstMask;
+        CurrentBitIndex := FirstIndex;
+        Inc(PLastScanLine);
+      end
+      else
+      begin
+        CurrentBits := CurrentBits shr BitCount;
+        Dec(CurrentBitIndex, BitCount);
+      end;
+    end;
+  end;
+
+  procedure IntegralByteRotate;
+  var
+    X, Y: LongInt;
+  begin
+    Inc(PbmpBufferR, BytesPerScanLineR * (PbmpInfoR^.biWidth - 1));
+    for Y := 1 to PbmpInfoR^.biHeight do
+    begin
+      for X := 1 to PbmpInfoR^.biWidth do
+      begin
+        Move(PbmpBuffer^, PbmpBufferR^, BytesPerPixel);
+        Inc(PbmpBuffer, BytesPerPixel);
+        Dec(PbmpBufferR, BytesPerScanLineR);
+      end;
+      Inc(PbmpBuffer, PaddingBytes);
+      Inc(PbmpBufferR, ColumnBytes + BytesPerPixel);
+    end;
+  end;
+
+begin
+  MemoryStream := TMemoryStream.Create;
+  ABitmap.SaveToStream(MemoryStream);
+  ABitmap.Free;
+  bmpBuffer := MemoryStream.Memory;
+  BitmapOffset := PBitmapFileHeader(bmpBuffer)^.bfOffBits;
+  Inc(bmpBuffer, SizeOf(TBitmapFileHeader));
+  PbmpInfoR := PBitmapInfoHeader(bmpBuffer);
+  bmpBuffer := MemoryStream.Memory;
+  Inc(bmpBuffer, BitmapOffset);
+  PbmpBuffer := bmpBuffer;
+  with PbmpInfoR^ do
+  begin
+    BitCount := biBitCount;
+    BytesPerScanLine := ((((biWidth * BitCount) + 31) div 32) * SizeOf(DWORD));
+    BytesPerScanLineR := ((((biHeight * BitCount) + 31) div 32) * SizeOf(DWORD));
+    AtLeastEightBitColor := BitCount >= BitsPerByte;
+    if AtLeastEightBitColor then
+    begin
+      BytesPerPixel := biBitCount shr 3;
+      SignificantBytes := biWidth * BitCount shr 3;
+      PaddingBytes := BytesPerScanLine - SignificantBytes;
+      ColumnBytes := BytesPerScanLineR * biWidth;
+    end
+    else
+    begin
+      PixelsPerByte := SizeOf(Byte) * BitsPerByte div BitCount;
+      WholeBytes := biWidth div PixelsPerByte;
+      ExtraPixels := biWidth mod PixelsPerByte;
+      PaddingBytes := BytesPerScanLine - WholeBytes;
+      if ExtraPixels <> 0 then Dec(PaddingBytes);
+    end;
+    MemoryStreamR := TMemoryStream.Create;
+    MemoryStreamR.SetSize(BitmapOffset + BytesPerScanLineR * biWidth);
+  end;
+  MemoryStream.Seek(0, soFromBeginning);
+  MemoryStreamR.CopyFrom(MemoryStream, BitmapOffset);
+  bmpBufferR := MemoryStreamR.Memory;
+  Inc(bmpBufferR, BitmapOffset);
+  PbmpBufferR := bmpBufferR;
+  if AtLeastEightBitColor then
+    IntegralByteRotate
+  else
+    NonIntegralByteRotate;
+  MemoryStream.Free;
+  PbmpBufferR := MemoryStreamR.Memory;
+  Inc(PbmpBufferR, SizeOf(TBitmapFileHeader));
+  PbmpInfoR := PBitmapInfoHeader(PbmpBufferR);
+  with PbmpInfoR^ do
+  begin
+    T := biHeight;
+    biHeight := biWidth;
+    biWidth := T;
+    biSizeImage := 0;
+  end;
+  ABitmap := TBitmap.Create;
+  MemoryStreamR.Seek(0, soFromBeginning);
+  ABitmap.LoadFromStream(MemoryStreamR);
+  MemoryStreamR.Free;
+end;
+
+procedure RotateBitmap180Degrees(var ABitmap: TBitmap);
+var
+  RotatedBitmap: TBitmap;
+begin
+  RotatedBitmap := TBitmap.Create;
+  with RotatedBitmap do
+  begin
+    Width := ABitmap.Width;
+    Height := ABitmap.Height;
+    Canvas.StretchDraw( Rect(ABitmap.Width, ABitmap.Height, 0, 0), ABitmap );
+  end;
+  ABitmap.Free;
+  ABitmap := RotatedBitmap;
+end;
+
+procedure RotateJPEG90DegreesCounterClockwise(const jp: TJPEGImage);
+var
+  b: TBitmap;
+begin
+  b := TBitmap.Create;
+  b.Assign(jp);
+  RotateBitmap90DegreesCounterClockwise(b);
+  jp.Assign(b);
+  b.Free;
+end;
+
+procedure RotateJPEG90DegreesClockwise(const jp: TJPEGImage);
+var
+  b: TBitmap;
+begin
+  b := TBitmap.Create;
+  b.Assign(jp);
+  RotateBitmap90DegreesClockwise(b);
+  jp.Assign(b);
+  b.Free;
+end;
+
+procedure RotateJPEG180Degrees(const jp: TJPEGImage);
+var
+  b: TBitmap;
+begin
+  b := TBitmap.Create;
+  b.Assign(jp);
+  RotateBitmap180Degrees(b);
+  jp.Assign(b);
+  b.Free;
+end;
+
+procedure RotatePNG90DegreesCounterClockwise(const pn: TPNGObject);
+var
+  b: TBitmap;
+begin
+  b := TBitmap.Create;
+  b.Assign(pn);
+  RotateBitmap90DegreesCounterClockwise(b);
+  pn.Assign(b);
+  b.Free;
+end;
+
+procedure RotatePNG90DegreesClockwise(const pn: TPNGObject);
+var
+  b: TBitmap;
+begin
+  b := TBitmap.Create;
+  b.Assign(pn);
+  RotateBitmap90DegreesClockwise(b);
+  pn.Assign(b);
+  b.Free;
+end;
+
+procedure RotatePNG180Degrees(const pn: TPNGObject);
+var
+  b: TBitmap;
+begin
+  b := TBitmap.Create;
+  b.Assign(pn);
+  RotateBitmap180Degrees(b);
+  pn.Assign(b);
+  b.Free;
+end;
+
+function RotateBitmapFile90DegreesCounterClockwise(const finp, fout: string): boolean;
+var
+  b: TBitmap;
+begin
+  Result := False;
+  if not FileExists(finp) then
+    Exit;
+
+  b := TBitmap.Create;
+  try
+    b.LoadFromFile(finp);
+    RotateBitmap90DegreesCounterClockwise(b);
+    backupfile(fout);
+    b.SaveToFile(fout);
+    Result := True;
+  finally
+    b.Free;
+  end;
+end;
+
+function RotateBitmapFile90DegreesClockwise(const finp, fout: string): boolean;
+var
+  b: TBitmap;
+begin
+  Result := False;
+  if not FileExists(finp) then
+    Exit;
+
+  b := TBitmap.Create;
+  try
+    b.LoadFromFile(finp);
+    RotateBitmap90DegreesClockwise(b);
+    b.SaveToFile(fout);
+    Result := True;
+  finally
+    b.Free;
+  end;
+end;
+
+function RotateBitmapFile180Degrees(const finp, fout: string): boolean;
+var
+  b: TBitmap;
+begin
+  Result := False;
+  if not FileExists(finp) then
+    Exit;
+
+  b := TBitmap.Create;
+  try
+    b.LoadFromFile(finp);
+    RotateBitmap180Degrees(b);
+    backupfile(fout);
+    b.SaveToFile(fout);
+    Result := True;
+  finally
+    b.Free;
+  end;
+end;
+
+function RotateJPEGFile90DegreesCounterClockwise(const finp, fout: string): boolean;
+var
+  jp: TJPEGImage;
+begin
+  Result := False;
+  if not FileExists(finp) then
+    Exit;
+
+  jp := TJPEGImage.Create;
+  try
+    JPG_ReadWebp(jp, finp);
+    RotateJPEG90DegreesCounterClockwise(jp);
+    jp.CompressionQuality := optjpegcompression;
+    backupfile(fout);
+    jp.SaveToFile(fout);
+    Result := True;
+  finally
+    jp.Free;
+  end;
+end;
+
+function RotateJPEGFile90DegreesClockwise(const finp, fout: string): boolean;
+var
+  jp: TJPEGImage;
+begin
+  Result := False;
+  if not FileExists(finp) then
+    Exit;
+
+  jp := TJPEGImage.Create;
+  try
+    JPG_ReadWebp(jp, finp);
+    RotateJPEG90DegreesClockwise(jp);
+    jp.CompressionQuality := optjpegcompression;
+    backupfile(fout);
+    jp.SaveToFile(fout);
+    Result := True;
+  finally
+    jp.Free;
+  end;
+end;
+
+function RotateJPEGFile180Degrees(const finp, fout: string): boolean;
+var
+  jp: TJPEGImage;
+begin
+  Result := False;
+  if not FileExists(finp) then
+    Exit;
+
+  jp := TJPEGImage.Create;
+  try
+    JPG_ReadWebp(jp, finp);
+    RotateJPEG180Degrees(jp);
+    jp.CompressionQuality := optjpegcompression;
+    backupfile(fout);
+    jp.SaveToFile(fout);
+    Result := True;
+  finally
+    jp.Free;
+  end;
+end;
+
+function RotatePNGFile90DegreesCounterClockwise(const finp, fout: string): boolean;
+var
+  pn: TPNGObject;
+begin
+  Result := False;
+  if not FileExists(finp) then
+    Exit;
+
+  pn := TPNGObject.Create;
+  try
+    PNG_ReadWebp(pn, finp);
+    RotatePNG90DegreesCounterClockwise(pn);
+    backupfile(fout);
+    pn.SaveToFile(fout);
+    Result := True;
+  finally
+    pn.Free;
+  end;
+end;
+
+function RotatePNGFile90DegreesClockwise(const finp, fout: string): boolean;
+var
+  pn: TPNGObject;
+begin
+  Result := False;
+  if not FileExists(finp) then
+    Exit;
+
+  pn := TPNGObject.Create;
+  try
+    PNG_ReadWebp(pn, finp);
+    RotatePNG90DegreesClockwise(pn);
+    backupfile(fout);
+    pn.SaveToFile(fout);
+    Result := True;
+  finally
+    pn.Free;
+  end;
+end;
+
+function RotatePNGFile180Degrees(const finp, fout: string): boolean;
+var
+  pn: TPNGObject;
+begin
+  Result := False;
+  if not FileExists(finp) then
+    Exit;
+
+  pn := TPNGObject.Create;
+  try
+    PNG_ReadWebp(pn, finp);
+    RotatePNG180Degrees(pn);
+    backupfile(fout);
+    pn.SaveToFile(fout);
+    Result := True;
+  finally
+    pn.Free;
+  end;
+end;
+
+type
+  imagetype_t = (it_jpg, it_png, it_bmp, it_unknown);
+
+function ext2typ(const ext: string): imagetype_t;
+begin
+  if (ext = '.jpg') or (ext = '.jpeg') then
+    Result := it_jpg
+  else if (ext = '.png') or (ext = '.webp') then
+    Result := it_png
+  else if ext = '.bmp' then
+    Result := it_bmp
+  else
+    Result := it_unknown;
+end;
+
+function LoadBitmapFromFile(const fname: string): TBitmap;
+var
+  typ: imagetype_t;
+  ext: string;
+  jp: TJPEGImage;
+  pn: TPNGObject;
+begin
+  ext := LowerCase(ExtractFileExt(fname));
+  typ := ext2typ(ext);
+
+  Result := TBitmap.Create;
+  try
+    if typ = it_jpg then
+    begin
+      jp := TJPEGImage.Create;
+      JPG_ReadWebp(jp, fname);
+      Result.Assign(jp);
+      jp.Free;
+    end
+    else if typ = it_png then
+    begin
+      pn := TPNGObject.Create;
+      PNG_ReadWebp(pn, fname);
+      Result.Assign(pn);
+      pn.Free;
+    end
+    else
+      Result.LoadFromFile(fname);
+  except
+    Result.Free;
+    Result := nil;
+  end;
+end;
+
+function SaveBitmapToFile(const bm: TBitmap; const fname: string): boolean;
+var
+  typ: imagetype_t;
+  ext: string;
+  jp: TJPEGImage;
+  pn: TPNGObject;
+begin
+  ext := LowerCase(ExtractFileExt(fname));
+  typ := ext2typ(ext);
+
+  Result := True;
+  try
+    if typ = it_jpg then
+    begin
+      jp := TJPEGImage.Create;
+      jp.Assign(bm);
+      jp.CompressionQuality := optjpegcompression;
+      jp.SaveToFile(fname);
+      jp.Free;
+    end
+    else if typ = it_png then
+    begin
+      pn := TPNGObject.Create;
+      pn.Assign(bm);
+      pn.SaveToFile(fname);
+      pn.Free;
+    end
+    else
+      bm.SaveToFile(fname);
+  except
+    Result := False;
+  end;
+end;
+
+function RotateImageFile90DegreesCounterClockwise(const finp, fout: string): boolean;
+var
+  ext1, ext2: string;
+  typ1, typ2: imagetype_t;
+  bm: TBitmap;
+begin
+  ext1 := LowerCase(ExtractFileExt(finp));
+  ext2 := LowerCase(ExtractFileExt(fout));
+  typ1 := ext2typ(ext1);
+  typ2 := ext2typ(ext1);
+  if typ1 = typ2 then
+  begin
+    if typ1 = it_jpg then
+      Result := RotateJPEGFile90DegreesCounterClockwise(finp, fout)
+    else if typ1 = it_png then
+      Result := RotatePNGFile90DegreesCounterClockwise(finp, fout)
+    else if typ1 = it_bmp then
+      Result := RotateBitmapFile90DegreesCounterClockwise(finp, fout)
+    else
+      Result := False;
+    Exit;
+  end;
+
+  if (typ1 = it_unknown) or (typ2 = it_unknown) then
+  begin
+    Result := False;
+    Exit;
+  end;
+
+  bm := LoadBitmapFromFile(finp);
+  if bm = nil then
+  begin
+    Result := False;
+    Exit;
+  end;
+
+  RotateBitmap90DegreesCounterClockwise(bm);
+
+  Result := SaveBitmapToFile(bm, fout);
+
+  bm.Free;
+end;
+
+function RotateImageFile90DegreesClockwise(const finp, fout: string): boolean;
+var
+  ext1, ext2: string;
+  typ1, typ2: imagetype_t;
+  bm: TBitmap;
+begin
+  ext1 := LowerCase(ExtractFileExt(finp));
+  ext2 := LowerCase(ExtractFileExt(fout));
+  typ1 := ext2typ(ext1);
+  typ2 := ext2typ(ext2);
+  if typ1 = typ2 then
+  begin
+    if typ1 = it_jpg then
+      Result := RotateJPEGFile90DegreesClockwise(finp, fout)
+    else if typ1 = it_png then
+      Result := RotatePNGFile90DegreesClockwise(finp, fout)
+    else if typ1 = it_bmp then
+      Result := RotateBitmapFile90DegreesClockwise(finp, fout)
+    else
+      Result := False;
+    Exit;
+  end;
+
+  if (typ1 = it_unknown) or (typ2 = it_unknown) then
+  begin
+    Result := False;
+    Exit;
+  end;
+
+  bm := LoadBitmapFromFile(finp);
+  if bm = nil then
+  begin
+    Result := False;
+    Exit;
+  end;
+
+  RotateBitmap90DegreesClockwise(bm);
+
+  Result := SaveBitmapToFile(bm, fout);
+
+  bm.Free;
+end;
+
+function RotateImageFile180Degrees(const finp, fout: string): boolean;
+var
+  ext1, ext2: string;
+  typ1, typ2: imagetype_t;
+  bm: TBitmap;
+begin
+  ext1 := LowerCase(ExtractFileExt(finp));
+  ext2 := LowerCase(ExtractFileExt(fout));
+  typ1 := ext2typ(ext1);
+  typ2 := ext2typ(ext1);
+  if typ1 = typ2 then
+  begin
+    if typ1 = it_jpg then
+      Result := RotateJPEGFile180Degrees(finp, fout)
+    else if typ1 = it_png then
+      Result := RotatePNGFile180Degrees(finp, fout)
+    else if typ1 = it_bmp then
+      Result := RotateBitmapFile180Degrees(finp, fout)
+    else
+      Result := False;
+    Exit;
+  end;
+
+  if (typ1 = it_unknown) or (typ2 = it_unknown) then
+  begin
+    Result := False;
+    Exit;
+  end;
+
+  bm := LoadBitmapFromFile(finp);
+  if bm = nil then
+  begin
+    Result := False;
+    Exit;
+  end;
+
+  RotateBitmap180Degrees(bm);
+
+  Result := SaveBitmapToFile(bm, fout);
+
+  bm.Free;
 end;
 
 end.

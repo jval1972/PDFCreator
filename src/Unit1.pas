@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, Buttons, AdvSmoothImageListBox, jpeg, pngimage, webpimage,
-  ExtDlgs, ShellAPI, StdCtrls, ComCtrls;
+  ExtDlgs, ShellAPI, StdCtrls, ComCtrls, Menus;
 
 type
   TForm1 = class(TForm)
@@ -45,6 +45,12 @@ type
     Panel10: TPanel;
     SplitCheckBox: TCheckBox;
     SaveCBZDialog1: TSaveDialog;
+    ListPopupMenu: TPopupMenu;
+    DeleteItem1: TMenuItem;
+    N1: TMenuItem;
+    Rotate1801: TMenuItem;
+    Rotate90Clockwise1: TMenuItem;
+    Rotate90Counterclockwise1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure SpeedButton2Click(Sender: TObject);
@@ -68,6 +74,11 @@ type
       Y: Integer);
     procedure ImageListBox1ItemStartDrag(Sender: TObject;
       ItemIndex: Integer; var AllowDrag: Boolean);
+    procedure ListPopupMenuPopup(Sender: TObject);
+    procedure DeleteItem1Click(Sender: TObject);
+    procedure Rotate1801Click(Sender: TObject);
+    procedure Rotate90Clockwise1Click(Sender: TObject);
+    procedure Rotate90Counterclockwise1Click(Sender: TObject);
   private
     { Private declarations }
     frontpage, backpage: string;
@@ -85,6 +96,7 @@ type
     function GetFrontPage: string;
     function GetBackPage: string;
     function GetImageFilenames: TStringList;
+    procedure RotateSelectedImage(const degrees: integer);
   public
     { Public declarations }
   end;
@@ -757,6 +769,107 @@ procedure TForm1.ImageListBox1ItemStartDrag(Sender: TObject;
 begin
   dragitem := ItemIndex;
   AllowDrag := dragitem >= 0;
+end;
+
+procedure TForm1.ListPopupMenuPopup(Sender: TObject);
+var
+  sel: integer;
+  pp: TPoint;
+begin
+  pp := ImageListBox1.ScreenToClient(ListPopupMenu.PopupPoint);
+  sel := ImageListBox1.FindItemOnXY(pp.X, pp.Y);
+  if sel >= 0 then
+  begin
+    ImageListBox1.SelectedItemIndex := sel;
+    ShowSelectedImgInfo(sel);
+  end;
+  DeleteItem1.Enabled := ImageListBox1.SelectedItemIndex >= 0;
+  Rotate1801.Enabled := ImageListBox1.SelectedItemIndex >= 0;
+  Rotate90Clockwise1.Enabled := ImageListBox1.SelectedItemIndex >= 0;
+  Rotate90Counterclockwise1.Enabled := ImageListBox1.SelectedItemIndex >= 0;
+end;
+
+procedure TForm1.DeleteItem1Click(Sender: TObject);
+var
+  sel: integer;
+  l: TStringList;
+  i: integer;
+begin
+  sel := ImageListBox1.SelectedItemIndex;
+  if sel < 0 then
+    Exit;
+
+  l := TStringList.Create;
+  try
+    for i := 0 to ImageListBox1.Items.Count - 1 do
+      if i <> sel then
+        l.Add(ImageListBox1.Items[i].Location);
+    AddFilesToList(l);
+  finally
+    l.Free;
+  end;
+end;
+
+procedure TForm1.RotateSelectedImage(const degrees: integer);
+var
+  sel: integer;
+  l: TStringList;
+  i: integer;
+  fin, fout: string;
+  ret: boolean;
+begin
+  sel := ImageListBox1.SelectedItemIndex;
+  if sel < 0 then
+    Exit;
+
+  if degrees <> 90 then
+    if degrees <> 180 then
+      if degrees <> 270 then
+        Exit;
+
+  ret := False;
+  l := TStringList.Create;
+  try
+    for i := 0 to ImageListBox1.Items.Count - 1 do
+      if i <> sel then
+        l.Add(ImageListBox1.Items[i].Location)
+      else
+      begin
+        fin := ImageListBox1.Items[i].Location;
+        fout := I_NewGlobalTempFile(ChangeFileExt(ExtractFileName(fin), '.png'));
+        if degrees = 90 then
+          ret := RotateImageFile90DegreesClockwise(fin, fout)
+        else if degrees = 270 then
+          ret := RotateImageFile90DegreesCounterClockwise(fin, fout)
+        else
+          ret := RotateImageFile180Degrees(fin, fout);
+        if ret then
+          l.Add(fout)
+        else
+          l.Add(ImageListBox1.Items[i].Location);
+      end;
+    if ret then
+      AddFilesToList(l);
+  finally
+    l.Free;
+  end;
+  ImageListBox1.SelectedItemIndex := sel;
+  ShowSelectedImgInfo(ImageListBox1.SelectedItemIndex)
+end;
+
+procedure TForm1.Rotate1801Click(Sender: TObject);
+begin
+  RotateSelectedImage(180);
+end;
+
+procedure TForm1.Rotate90Clockwise1Click(Sender: TObject);
+begin
+  RotateSelectedImage(90);
+end;
+
+procedure TForm1.Rotate90Counterclockwise1Click(Sender: TObject);
+begin
+  RotateSelectedImage(270);
 end;
 
 end.

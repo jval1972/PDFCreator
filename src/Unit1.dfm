@@ -4961,6 +4961,7 @@ object Form1: TForm1
       OnItemHint = ImageListBox1ItemHint
       OnItemStartDrag = ImageListBox1ItemStartDrag
       Align = alClient
+      PopupMenu = ListPopupMenu
       TabOrder = 0
       OnDragDrop = ImageListBox1DragDrop
       OnDragOver = ImageListBox1DragOver
@@ -5142,5 +5143,29 @@ object Form1: TForm1
     Options = [ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
     Left = 401
     Top = 273
+  end
+  object ListPopupMenu: TPopupMenu
+    OnPopup = ListPopupMenuPopup
+    Left = 185
+    Top = 233
+    object DeleteItem1: TMenuItem
+      Caption = 'Delete Item'
+      OnClick = DeleteItem1Click
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object Rotate1801: TMenuItem
+      Caption = 'Rotate 180'
+      OnClick = Rotate1801Click
+    end
+    object Rotate90Clockwise1: TMenuItem
+      Caption = 'Rotate 90 Clockwise'
+      OnClick = Rotate90Clockwise1Click
+    end
+    object Rotate90Counterclockwise1: TMenuItem
+      Caption = 'Rotate 90 Counter Clockwise'
+      OnClick = Rotate90Counterclockwise1Click
+    end
   end
 end

@@ -45,9 +45,9 @@ begin
   if Length(aname) > 9 then
     if IsNumeric(aname[1]) and IsNumeric(aname[2]) and IsNumeric(aname[3]) and
        IsNumeric(aname[4]) and IsNumeric(aname[5]) and IsNumeric(aname[6]) and
-       IsNumeric(aname[7]) and IsNumeric(aname[8]) and Pos('_', aname) > 0 then
+       IsNumeric(aname[7]) and IsNumeric(aname[8]) and (Pos('_', aname) > 0) then
     begin
-      num := StrToInt(Copy(s, 1, 8));
+      num := StrToInt(Copy(aname, 1, 8));
       if cntid <= num then
         cntid := num + 1;
       aname[1] := ' ';
