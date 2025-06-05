@@ -42,6 +42,8 @@ function sort_logical(List: TStringList; Index1, Index2: Integer): Integer;
 
 function CBRZ2PDFConv(const fin, fout: string): boolean;
 
+function myfindfiles(const mask: string): TStringList;
+
 implementation
 
 uses
@@ -395,9 +397,9 @@ begin
   Result := False;
 
   if IsZipFile(fin) then
-    arc := TRarFile.Create(fin)
-  else if IsRarFile(fin) then
     arc := TZipFile.Create(fin)
+  else if IsRarFile(fin) then
+    arc := TRarFile.Create(fin)
   else
     Exit;
 
@@ -463,6 +465,22 @@ begin
   l2.Free;
 
   Result := True;
+end;
+
+function myfindfiles(const mask: string): TStringList;
+var
+  sr: TSearchRec;
+  path: string;
+begin
+  Result := TStringList.Create;
+  path := ExtractFilePath(mask);
+  if FindFirst(mask, faAnyFile, sr) = 0 then
+  begin
+    Result.Add(path + sr.Name);
+    while FindNext(sr) = 0 do
+      Result.Add(path + sr.Name);
+    FindClose(sr);
+  end;
 end;
 
 end.

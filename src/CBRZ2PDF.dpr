@@ -1,0 +1,84 @@
+program CBRZ2PDF;
+
+{$APPTYPE CONSOLE}
+
+uses
+  SysUtils,
+  Classes,
+  img_names in 'img_names.pas',
+  img_utils in 'img_utils.pas',
+  libwebp in 'libwebp.pas',
+  pngimage in 'pngimage.pas',
+  pnglang in 'pnglang.pas',
+  utils in 'utils.pas',
+  webp in 'webp.pas',
+  mORMotReport in 'SynPDF\mORMotReport.pas',
+  SynCommons in 'SynPDF\SynCommons.pas',
+  SynCrypto in 'SynPDF\SynCrypto.pas',
+  SynGdiPlus in 'SynPDF\SynGdiPlus.pas',
+  SynLZ in 'SynPDF\SynLZ.pas',
+  SynPdf in 'SynPDF\SynPdf.pas',
+  SynTable in 'SynPDF\SynTable.pas',
+  SynZip in 'SynPDF\SynZip.pas',
+  wzipfile in 'wzipfile.pas',
+  zlibpas in 'zlibpas.pas',
+  pdf2jpg in 'pdf2jpg.pas',
+  options in 'options.pas',
+  pdfexport in 'pdfexport.pas',
+  webpimage in 'webpimage.pas',
+  tmpfiles in 'tmpfiles.pas',
+  BTMemoryModule in 'BTMemoryModule.pas',
+  unrar in 'unrar.pas',
+  zlibpasEx in 'zlibpasEx.pas',
+  rarfile in 'rarfile.pas',
+  unrardll in 'unrardll.pas',
+  arcbase in 'arcbase.pas';
+
+var
+  i, j: integer;
+  l, l2: TStringList;
+  s, s2, ext: string;
+begin
+  { TODO -oUser -cConsole Main : Insert code here }
+  l := TStringList.Create;
+
+  for i := 1 to ParamCount do
+  begin
+    s := ParamStr(i);
+    ext := LowerCase(ExtractFileExt(s));
+    if (ext = '.cbr') or (ext = '.cbz') then
+      l.Add(s)
+    else if (Pos('*', s) > 0) or (Pos('?', s) > 0) then
+    begin
+      l2 := myfindfiles(s);
+      for j := 0 to l2.Count - 1 do
+      begin
+        s := l2.Strings[j];
+        ext := LowerCase(ExtractFileExt(s));
+        if (ext = '.cbr') or (ext = '.cbz') then
+          l.Add(s)
+      end;
+      l2.Free;
+    end;
+  end;
+  if l.Count = 0 then
+  begin
+    writeln('CBRZ2PDF v.1.0.');
+    writeln('Please specify in command line the CBR/CBZ you want to convert to PDF');
+    readln;
+    l.Free;
+    Halt(0);
+  end;
+
+  for i := 0 to l.Count - 1 do
+  begin
+    s := l.Strings[i];
+    s2 := ChangeFileExt(s, '.pdf');
+    write('Converting ' + ExtractFileName(s) + '...');
+    if CBRZ2PDFConv(s, s2) then
+      writeln('...Done!')
+    else
+      writeln('...Failed!')
+  end;
+  l.Free;
+end.
