@@ -42,7 +42,7 @@ uses
 var
   i, j: integer;
   l, l2: TStringList;
-  s, s2, ext: string;
+  s, s2, ext, path, tpath: string;
 begin
   { TODO -oUser -cConsole Main : Insert code here }
   l := TStringList.Create;
@@ -58,12 +58,19 @@ begin
       l2 := TStringList.Create;
       try
         l2.LoadFromFile(s);
+        tpath := ExtractFilePath(s);
         for j := 0 to l2.Count - 1 do
         begin
           s := l2.Strings[j];
           ext := LowerCase(ExtractFileExt(s));
           if (ext = '.cbr') or (ext = '.cbz') then
-            l.Add(s)
+          begin
+            path := ExtractFilePath(s);
+            if path = '' then
+              l.Add(tpath + s)
+            else
+              l.Add(s);
+          end;
         end;
       finally
         l2.Free;
