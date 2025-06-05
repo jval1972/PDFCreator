@@ -53,6 +53,22 @@ begin
     ext := LowerCase(ExtractFileExt(s));
     if (ext = '.cbr') or (ext = '.cbz') then
       l.Add(s)
+    else if ext = '.txt' then
+    begin
+      l2 := TStringList.Create;
+      try
+        l2.LoadFromFile(s);
+        for j := 0 to l2.Count - 1 do
+        begin
+          s := l2.Strings[j];
+          ext := LowerCase(ExtractFileExt(s));
+          if (ext = '.cbr') or (ext = '.cbz') then
+            l.Add(s)
+        end;
+      finally
+        l2.Free;
+      end;
+    end
     else if (Pos('*', s) > 0) or (Pos('?', s) > 0) then
     begin
       l2 := myfindfiles(s);
