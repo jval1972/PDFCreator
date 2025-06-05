@@ -68,7 +68,7 @@ const
      _type: tInteger),
 
     (name: 'optautosplitimages';
-     location: @optjpegcompression;
+     location: @optautosplitimages;
      setable: True;
      defaultsvalue: '';
      defaultivalue: 1;
