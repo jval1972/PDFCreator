@@ -167,7 +167,7 @@ begin
       w := w div 2;
     if w > maxw then
       maxw := w;
-    if h > maxw then
+    if h > maxh then
       maxh := h;
   end;
 
