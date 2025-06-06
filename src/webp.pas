@@ -75,18 +75,21 @@ begin
       FreeMem(buffer, sz);
       // Load to image
       b := TBitmap.Create;
-      b.Width := w;
-      b.Height := h;
-      b.PixelFormat := pf32bit;
-      for j := 0 to h - 1 do
-      begin
-        line := b.ScanLine[j];
-        for i := 0 to 4 * w - 1 do
-          line[i] := data[j * 4 * w + i];
+      try
+        b.Width := w;
+        b.Height := h;
+        b.PixelFormat := pf32bit;
+        for j := 0 to h - 1 do
+        begin
+          line := b.ScanLine[j];
+          for i := 0 to 4 * w - 1 do
+            line[i] := data[j * 4 * w + i];
+        end;
+        WebPFree(data);
+        PNG.Assign(b);
+      finally
+        b.Free;
       end;
-      WebPFree(data);
-      PNG.Assign(b);
-      b.Free;
       Stream.Free;
       Result := True;
       Exit;
@@ -165,18 +168,21 @@ begin
       FreeMem(buffer, sz);
       // Load to image
       b := TBitmap.Create;
-      b.Width := w;
-      b.Height := h;
-      b.PixelFormat := pf32bit;
-      for j := 0 to h - 1 do
-      begin
-        line := b.ScanLine[j];
-        for i := 0 to 4 * w - 1 do
-          line[i] := data[j * 4 * w + i];
+      try
+        b.Width := w;
+        b.Height := h;
+        b.PixelFormat := pf32bit;
+        for j := 0 to h - 1 do
+        begin
+          line := b.ScanLine[j];
+          for i := 0 to 4 * w - 1 do
+            line[i] := data[j * 4 * w + i];
+        end;
+        WebPFree(data);
+        JPG.Assign(b);
+      finally
+        b.Free;
       end;
-      WebPFree(data);
-      JPG.Assign(b);
-      b.Free;
       Stream.Free;
       Result := True;
       Exit;

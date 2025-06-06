@@ -403,9 +403,7 @@ begin
   else
     Exit;
 
-  cnt := 0;
   l1 := TStringList.Create;
-  l2 := TStringList.Create;
   for j := 0 to arc.FileCount - 1 do
   begin
     file1 := arc.Files[j];
@@ -413,14 +411,22 @@ begin
     if (ext2 = '.png') or (ext2 = '.jpg') or (ext2 = '.jpeg') or (ext2 = '.webp') or (ext2 = '.bmp') or (ext2 = '.tif') or (ext2 = '.tiff') then
     begin
       l1.Add(file1);
-      file2 := I_NewTempFile('CBRZ2PDF' + IntToStr4(cnt) + ext2);
-      if FileExists(file2) then
-        DeleteFile(file2);
-      Inc(cnt);
-      l2.Add(file2);
     end;
   end;
   l1.CustomSort(sort_logical);
+  l2 := TStringList.Create;
+  cnt := 0;
+  for j := 0 to l1.Count - 1 do
+  begin
+    file1 := l1.Strings[j];
+    ext2 := LowerCase(ExtractFileExt(file1));
+    file2 := I_NewTempFile('CBRZ2PDF' + IntToStr4(cnt) + ext2);
+    if FileExists(file2) then
+      DeleteFile(file2);
+    l2.Add(file2);
+    Inc(cnt);
+  end;
+
   arc.ExtractFiles(l1, l2);
   arc.Free;
   l1.Free;
