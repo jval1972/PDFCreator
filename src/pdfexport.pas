@@ -58,7 +58,7 @@ begin
   obPDF.DefaultPageWidth := w;
   obPDF.DefaultPageHeight := h;
   obPDF.DefaultPageLandscape := false;
-  obPDF.CompressionMethod := cmNone;
+  obPDF.CompressionMethod := cmFlateDecode;
   obPDF.ForceJPEGCompression := 0;
   obPDF.Info.Creator := 'PDFCreator';
 
@@ -145,7 +145,7 @@ begin
     begin
       PNG := TPNGObject.Create;
       try
-        PNG.LoadFromFile(folder + l[i]);
+        PNG_ReadWebp(PNG, folder + l[i]);
         w := PNG.Width;
         h := PNG.Height;
       finally
@@ -177,7 +177,7 @@ begin
   obPDF.DefaultPageWidth := maxw;
   obPDF.DefaultPageHeight := maxh;
   obPDF.DefaultPageLandscape := false;
-  obPDF.CompressionMethod := cmNone;
+  obPDF.CompressionMethod := cmFlateDecode;
   obPDF.ForceJPEGCompression := 0;
   obPDF.Info.Creator := 'PDFCreator';
 
@@ -189,34 +189,36 @@ begin
       begin
         PNG := TPNGObject.Create;
         try
-          PNG.LoadFromFile(folder + l[i]);
-          w := PNG.Width;
-          h := PNG.Height;
-
-          pdfimage := TPdfImage.Create(obPDF, PNG, true);
-          obPage := obPDF.AddPage;
-          obPage.PageWidth := maxw;
-          obPage.PageHeight := maxh;
-          sname := GetImgName(i) + '.png';
-          obPDF.AddXObject(sname, pdfimage);
-
-          if optautosplitimages and (w > h) then
+          if PNG_ReadWebp(PNG, folder + l[i]) then
           begin
-            obPDF.Canvas.DrawXObject(0, 0, 2 * maxw, maxh, sname);
+            w := PNG.Width;
+            h := PNG.Height;
+
+            pdfimage := TPdfImage.Create(obPDF, PNG, true);
             obPage := obPDF.AddPage;
             obPage.PageWidth := maxw;
             obPage.PageHeight := maxh;
-            obPDF.Canvas.DrawXObject(-maxw, 0, 2 * maxw, maxh, sname);
-          end
-          else
-          begin
-            if w > h then
+            sname := GetImgName(i) + '.png';
+            obPDF.AddXObject(sname, pdfimage);
+
+            if optautosplitimages and (w > h) then
             begin
-              obPage.PageWidth := 2 * maxw;
               obPDF.Canvas.DrawXObject(0, 0, 2 * maxw, maxh, sname);
+              obPage := obPDF.AddPage;
+              obPage.PageWidth := maxw;
+              obPage.PageHeight := maxh;
+              obPDF.Canvas.DrawXObject(-maxw, 0, 2 * maxw, maxh, sname);
             end
             else
-              obPDF.Canvas.DrawXObject(0, 0, maxw, maxh, sname);
+            begin
+              if w > h then
+              begin
+                obPage.PageWidth := 2 * maxw;
+                obPDF.Canvas.DrawXObject(0, 0, 2 * maxw, maxh, sname);
+              end
+              else
+                obPDF.Canvas.DrawXObject(0, 0, maxw, maxh, sname);
+            end;
           end;
         finally
           PNG.Free;
