@@ -11,6 +11,8 @@ type
     setable: boolean;
     defaultsvalue: string;
     defaultivalue: integer;
+    minivalue: integer;
+    maxivalue: integer;
     defaultbvalue: boolean;
     _type: ttype_t;
   end;
@@ -32,6 +34,8 @@ const
      setable: false;
      defaultsvalue: '';
      defaultivalue: 0;
+     minivalue: 0;
+     maxivalue: 0;
      defaultbvalue: False;
      _type: tGroup),
 
@@ -40,6 +44,8 @@ const
      setable: True;
      defaultsvalue: '';
      defaultivalue: 1;
+     minivalue: 0;
+     maxivalue: 0;
      defaultbvalue: True;
      _type: tBoolean),
 
@@ -48,6 +54,8 @@ const
      setable: True;
      defaultsvalue: '';
      defaultivalue: 0;
+     minivalue: 0;
+     maxivalue: 0;
      defaultbvalue: False;
      _type: tBoolean),
 
@@ -56,6 +64,8 @@ const
      setable: True;
      defaultsvalue: '';
      defaultivalue: 1;
+     minivalue: 0;
+     maxivalue: 0;
      defaultbvalue: True;
      _type: tBoolean),
 
@@ -64,6 +74,8 @@ const
      setable: True;
      defaultsvalue: '';
      defaultivalue: 100;
+     minivalue: 75;
+     maxivalue: 100;
      defaultbvalue: True;
      _type: tInteger),
 
@@ -72,6 +84,8 @@ const
      setable: True;
      defaultsvalue: '';
      defaultivalue: 1;
+     minivalue: 0;
+     maxivalue: 0;
      defaultbvalue: True;
      _type: tBoolean)
 
@@ -126,7 +140,16 @@ begin
         begin
           pd := @defaults[idx];
           if pd._type = tInteger then
-            PInteger(pd.location)^ := StrToIntDef(s.Values[n], pd.defaultivalue)
+          begin
+            PInteger(pd.location)^ := StrToIntDef(s.Values[n], pd.defaultivalue);
+            if pd.minivalue < pd.maxivalue then
+            begin
+              if PInteger(pd.location)^ < pd.minivalue then
+                PInteger(pd.location)^ := pd.minivalue
+              else if PInteger(pd.location)^ > pd.maxivalue then
+                PInteger(pd.location)^ := pd.maxivalue;
+            end;
+          end
           else if pd._type = tBoolean then
              PBoolean(pd.location)^ := StrToIntDef(s.Values[n], pd.defaultivalue) <> 0
           else if pd._type = tString255 then
