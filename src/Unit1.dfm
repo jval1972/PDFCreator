@@ -5167,5 +5167,16 @@ object Form1: TForm1
       Caption = 'Rotate 90 Counter Clockwise'
       OnClick = Rotate90Counterclockwise1Click
     end
+    object N2: TMenuItem
+      Caption = '-'
+    end
+    object PastePNG1: TMenuItem
+      Caption = 'Paste PNG'
+      OnClick = PastePNG1Click
+    end
+    object PasteJPG1: TMenuItem
+      Caption = 'Paste JPG'
+      OnClick = PasteJPG1Click
+    end
   end
 end

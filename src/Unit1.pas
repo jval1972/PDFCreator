@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, Buttons, AdvSmoothImageListBox, jpeg, pngimage, webpimage,
-  ExtDlgs, ShellAPI, StdCtrls, ComCtrls, Menus;
+  ExtDlgs, ShellAPI, StdCtrls, ComCtrls, Menus, Clipbrd;
 
 type
   TForm1 = class(TForm)
@@ -51,6 +51,9 @@ type
     Rotate1801: TMenuItem;
     Rotate90Clockwise1: TMenuItem;
     Rotate90Counterclockwise1: TMenuItem;
+    N2: TMenuItem;
+    PastePNG1: TMenuItem;
+    PasteJPG1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure SpeedButton2Click(Sender: TObject);
@@ -79,6 +82,8 @@ type
     procedure Rotate1801Click(Sender: TObject);
     procedure Rotate90Clockwise1Click(Sender: TObject);
     procedure Rotate90Counterclockwise1Click(Sender: TObject);
+    procedure PastePNG1Click(Sender: TObject);
+    procedure PasteJPG1Click(Sender: TObject);
   private
     { Private declarations }
     frontpage, backpage: string;
@@ -97,6 +102,7 @@ type
     function GetBackPage: string;
     function GetImageFilenames: TStringList;
     procedure RotateSelectedImage(const degrees: integer);
+    function PasteNewImageAs(const ext: string): Boolean;
   public
     { Public declarations }
   end;
@@ -727,7 +733,6 @@ procedure TForm1.ImageListBox1DragDrop(Sender, Source: TObject; X,
 var
   dst: integer;
   src: integer;
-  scrit: TAdvSmoothImageListBoxItem;
   l: TStringList;
   i: integer;
   sitem: string;
@@ -787,6 +792,8 @@ begin
   Rotate1801.Enabled := ImageListBox1.SelectedItemIndex >= 0;
   Rotate90Clockwise1.Enabled := ImageListBox1.SelectedItemIndex >= 0;
   Rotate90Counterclockwise1.Enabled := ImageListBox1.SelectedItemIndex >= 0;
+  PastePNG1.Enabled := IsClipboardFormatAvailable(CF_BITMAP);
+  PasteJPG1.Enabled := IsClipboardFormatAvailable(CF_BITMAP);
 end;
 
 procedure TForm1.DeleteItem1Click(Sender: TObject);
@@ -870,6 +877,70 @@ end;
 procedure TForm1.Rotate90Counterclockwise1Click(Sender: TObject);
 begin
   RotateSelectedImage(270);
+end;
+
+function TForm1.PasteNewImageAs(const ext: string): Boolean;
+var
+  sel, idx: integer;
+  l: TStringList;
+  i: integer;
+  bm: TBitmap;
+  imgfname: string;
+begin
+  Result := False;
+
+  if not IsClipboardFormatAvailable(CF_BITMAP) then
+    Exit;
+
+  imgfname := '';
+  bm := TBitmap.Create;
+  try
+    bm.Assign(Clipboard);
+    if (bm.Width > 0) and (bm.Height > 0) then
+    begin
+      imgfname := I_NewGlobalTempFile('paste' + ext);
+      SaveBitmapToFile(bm, imgfname);
+    end;
+  finally
+    bm.Free;
+  end;
+
+  if imgfname = '' then
+    Exit;
+
+  if not FileExists(imgfname) then
+    Exit;
+
+  sel := ImageListBox1.SelectedItemIndex;
+  idx := sel;
+
+  l := TStringList.Create;
+  try
+    for i := 0 to ImageListBox1.Items.Count - 1 do
+      l.Add(ImageListBox1.Items[i].Location);
+    if sel < 0 then
+      idx := l.Add(imgfname)
+    else
+      l.Insert(sel, imgfname);
+    AddFilesToList(l);
+  finally
+    l.Free;
+  end;
+  if idx >= 0 then
+    ImageListBox1.SelectedItemIndex := idx;
+  ShowSelectedImgInfo(ImageListBox1.SelectedItemIndex);
+
+  Result := True;
+end;
+
+procedure TForm1.PastePNG1Click(Sender: TObject);
+begin
+  PasteNewImageAs('.png');
+end;
+
+procedure TForm1.PasteJPG1Click(Sender: TObject);
+begin
+  PasteNewImageAs('.jpg');
 end;
 
 end.
