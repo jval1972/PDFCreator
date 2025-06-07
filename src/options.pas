@@ -2,6 +2,9 @@ unit options;
 
 interface
 
+uses
+  pdfexport;
+  
 type
   ttype_t = (tString255, tInteger, tBoolean, tGroup);
 
@@ -24,9 +27,10 @@ var
   optSetImageHint: Boolean = True;
   optjpegcompression: integer = 100;
   optautosplitimages: Boolean = True;
+  optpdfexportsize: Integer = 0;
 
 const
-  NUMDEFAULTS = 6;
+  NUMDEFAULTS = 7;
 
   defaults: array[0..NUMDEFAULTS - 1] of default_t = (
     (name: 'General';
@@ -87,7 +91,17 @@ const
      minivalue: 0;
      maxivalue: 0;
      defaultbvalue: True;
-     _type: tBoolean)
+     _type: tBoolean),
+
+    (name: 'optpdfexportsize';
+     location: @optpdfexportsize;
+     setable: True;
+     defaultsvalue: '';
+     defaultivalue: PDFE_MAXWIDTH;
+     minivalue: PDFE_START;
+     maxivalue: PDFE_END;
+     defaultbvalue: True;
+     _type: tInteger)
 
   );
 

@@ -5,6 +5,14 @@ interface
 uses
   SysUtils, Classes;
 
+const
+  PDFE_START = 0;
+  PDFE_MAXWIDTH = 0;
+  PDFE_MAXHEIGHT = 1;
+  PDFE_MAXWIDTHHEIGHT = 2;
+  PDFE_SOURCE = 3;
+  PDFE_END = PDFE_SOURCE;
+
 procedure MakePDF(const folder: string; const l: TStringList; const fname: string);
 
 procedure MakePDFEx(const folder: string; const l: TStringList; const fname: string);
@@ -13,6 +21,36 @@ implementation
 
 uses
   StrUtils, SynPdf, webp, img_utils, img_names, options, jpeg, pngimage;
+
+procedure CalcPageDimensions(const imgw, imgh, maxw, maxh: Integer; out outw, outh: integer);
+begin
+  case optpdfexportsize of
+    PDFE_MAXWIDTH:
+      begin
+        outw := maxw;
+        if imgw = 0 then
+          outh := 0
+        else
+           outh := Round(imgh * (maxw / imgw));
+      end;
+    PDFE_MAXHEIGHT:
+      begin
+        outh := maxh;
+        if imgh = 0 then
+          outw := 0
+        else
+           outw := Round(imgw * (maxh / imgh));
+      end;
+    PDFE_MAXWIDTHHEIGHT:
+      begin
+        outw := maxw;
+        outh := maxh;
+      end;
+  else
+    outw := imgw;
+    outh := imgh;
+  end;
+end;
 
 procedure MakePDF(const folder: string; const l: TStringList; const fname: string);
 var
@@ -128,7 +166,7 @@ var
   pdfimage: TPdfImage;
   JPG: TJPEGImage;
   i: integer;
-  maxw, maxh, w, h: integer;
+  maxw, maxh, w, h, pagew, pageh: integer;
   sname: string;
   m: TMemoryStream;
   PNG: TPNGObject;
@@ -138,6 +176,8 @@ begin
 
   maxw := 0;
   maxh := 0;
+  pagew := 0;
+  pageh := 0;
 
   for i := 0 to l.Count - 1 do
   begin
@@ -169,13 +209,20 @@ begin
       maxw := w;
     if h > maxh then
       maxh := h;
+    if pagew = 0 then
+      pagew := maxw;
+    if pageh = 0 then
+      pageh := maxh;
   end;
 
   obPDF := TPdfDocument.Create(false, 0, false);
   obPDF.GeneratePDF15File := true;
   obPDF.DefaultPaperSize := psUserDefined;
-  obPDF.DefaultPageWidth := maxw;
-  obPDF.DefaultPageHeight := maxh;
+  w := pagew;
+  h := pageh;
+  CalcPageDimensions(w, h, maxw, maxh, pagew, pageh);
+  obPDF.DefaultPageWidth := pagew;
+  obPDF.DefaultPageHeight := pageh;
   obPDF.DefaultPageLandscape := false;
   obPDF.CompressionMethod := cmFlateDecode;
   obPDF.ForceJPEGCompression := 0;
@@ -196,28 +243,30 @@ begin
 
             pdfimage := TPdfImage.Create(obPDF, PNG, true);
             obPage := obPDF.AddPage;
-            obPage.PageWidth := maxw;
-            obPage.PageHeight := maxh;
+            CalcPageDimensions(w, h, maxw, maxh, pagew, pageh);
+            obPage.PageWidth := pagew;
+            obPage.PageHeight := pageh;
             sname := GetImgName(i) + '.png';
             obPDF.AddXObject(sname, pdfimage);
 
             if optautosplitimages and (w > h) then
             begin
-              obPDF.Canvas.DrawXObject(0, 0, 2 * maxw, maxh, sname);
+              obPDF.Canvas.DrawXObject(0, 0, 2 * pagew, pageh, sname);
               obPage := obPDF.AddPage;
-              obPage.PageWidth := maxw;
-              obPage.PageHeight := maxh;
-              obPDF.Canvas.DrawXObject(-maxw, 0, 2 * maxw, maxh, sname);
+              CalcPageDimensions(w, h, maxw, maxh, pagew, pageh);
+              obPage.PageWidth := pagew;
+              obPage.PageHeight := pageh;
+              obPDF.Canvas.DrawXObject(-pagew, 0, 2 * pagew, pageh, sname);
             end
             else
             begin
               if w > h then
               begin
-                obPage.PageWidth := 2 * maxw;
-                obPDF.Canvas.DrawXObject(0, 0, 2 * maxw, maxh, sname);
+                obPage.PageWidth := 2 * pagew;
+                obPDF.Canvas.DrawXObject(0, 0, 2 * pagew, pageh, sname);
               end
               else
-                obPDF.Canvas.DrawXObject(0, 0, maxw, maxh, sname);
+                obPDF.Canvas.DrawXObject(0, 0, pagew, pageh, sname);
             end;
           end;
         finally
@@ -244,21 +293,22 @@ begin
 
         pdfimage := TPdfImage.CreateJpegDirect(obPDF, m);
         obPage := obPDF.AddPage;
-        obPage.PageWidth := maxw;
-        obPage.PageHeight := maxh;
+        CalcPageDimensions(w, h, maxw, maxh, pagew, pageh);
+        obPage.PageWidth := pagew;
+        obPage.PageHeight := pageh;
         sname := GetImgName(i) + '.jpg';
         obPDF.AddXObject(sname, pdfimage);
 
         if optautosplitimages and (w > h) then
         begin
-          obPDF.Canvas.DrawXObject(0, 0, 2 * maxw, maxh, sname);
+          obPDF.Canvas.DrawXObject(0, 0, 2 * pagew, pageh, sname);
           obPage := obPDF.AddPage;
-          obPage.PageWidth := maxw;
-          obPage.PageHeight := maxh;
-          obPDF.Canvas.DrawXObject(-maxw, 0, 2 * maxw, maxh, sname);
+          obPage.PageWidth := pagew;
+          obPage.PageHeight := pageh;
+          obPDF.Canvas.DrawXObject(-pagew, 0, 2 * pagew, pageh, sname);
         end
         else
-          obPDF.Canvas.DrawXObject(0, 0, maxw, maxh, sname);
+          obPDF.Canvas.DrawXObject(0, 0, pagew, pageh, sname);
         m.Size := 0;
         m.Position := 0;
       end;
