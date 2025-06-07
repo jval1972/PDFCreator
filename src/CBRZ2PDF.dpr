@@ -41,7 +41,7 @@ uses
 
 var
   i, j: integer;
-  l, l2, l3: TStringList;
+  l, l2: TStringList;
   s, s2, ext, path, tpath: string;
 begin
   { TODO -oUser -cConsole Main : Insert code here }
@@ -51,7 +51,7 @@ begin
   begin
     s := ParamStr(i);
     ext := LowerCase(ExtractFileExt(s));
-    if (ext = '.cbr') or (ext = '.cbz') then
+    if (ext = '.cbr') or (ext = '.cbz') or (ext = '.zip') or (ext = '.rar') then
       l.Add(s)
     else if ext = '.txt' then
     begin
