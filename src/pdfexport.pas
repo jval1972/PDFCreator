@@ -50,6 +50,8 @@ begin
     outw := imgw;
     outh := imgh;
   end;
+  if optautosplitimages and (imgw > imgh) then
+    outw := outw div 2;
 end;
 
 procedure MakePDF(const folder: string; const l: TStringList; const fname: string);
@@ -236,39 +238,28 @@ begin
       begin
         PNG := TPNGObject.Create;
         try
-          if PNG_ReadWebp(PNG, folder + l[i]) then
-          begin
-            w := PNG.Width;
-            h := PNG.Height;
+          PNG_ReadWebp(PNG, folder + l[i]);
+          w := PNG.Width;
+          h := PNG.Height;
 
-            pdfimage := TPdfImage.Create(obPDF, PNG, true);
+          pdfimage := TPdfImage.Create(obPDF, PNG, true);
+          obPage := obPDF.AddPage;
+          CalcPageDimensions(w, h, maxw, maxh, pagew, pageh);
+          obPage.PageWidth := pagew;
+          obPage.PageHeight := pageh;
+          sname := GetImgName(i) + '.png';
+          obPDF.AddXObject(sname, pdfimage);
+
+          if optautosplitimages and (w > h) then
+          begin
+            obPDF.Canvas.DrawXObject(0, 0, 2 * pagew, pageh, sname);
             obPage := obPDF.AddPage;
-            CalcPageDimensions(w, h, maxw, maxh, pagew, pageh);
             obPage.PageWidth := pagew;
             obPage.PageHeight := pageh;
-            sname := GetImgName(i) + '.png';
-            obPDF.AddXObject(sname, pdfimage);
-
-            if optautosplitimages and (w > h) then
-            begin
-              obPDF.Canvas.DrawXObject(0, 0, 2 * pagew, pageh, sname);
-              obPage := obPDF.AddPage;
-              CalcPageDimensions(w, h, maxw, maxh, pagew, pageh);
-              obPage.PageWidth := pagew;
-              obPage.PageHeight := pageh;
-              obPDF.Canvas.DrawXObject(-pagew, 0, 2 * pagew, pageh, sname);
-            end
-            else
-            begin
-              if w > h then
-              begin
-                obPage.PageWidth := 2 * pagew;
-                obPDF.Canvas.DrawXObject(0, 0, 2 * pagew, pageh, sname);
-              end
-              else
-                obPDF.Canvas.DrawXObject(0, 0, pagew, pageh, sname);
-            end;
-          end;
+            obPDF.Canvas.DrawXObject(-pagew, 0, 2 * pagew, pageh, sname);
+          end
+          else
+            obPDF.Canvas.DrawXObject(0, 0, pagew, pageh, sname);
         finally
           PNG.Free;
         end;
