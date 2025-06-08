@@ -26,7 +26,7 @@ var
   optNoExt: Boolean = False;
   optSetImageHint: Boolean = True;
   optjpegcompression: integer = 100;
-  optautosplitimages: Boolean = True;
+  optautosplitimages: Boolean = False;
   optpdfexportsize: Integer = 0;
 
 const
@@ -35,7 +35,7 @@ const
   defaults: array[0..NUMDEFAULTS - 1] of default_t = (
     (name: 'General';
      location: nil;
-     setable: false;
+     setable: False;
      defaultsvalue: '';
      defaultivalue: 0;
      minivalue: 0;
@@ -90,7 +90,7 @@ const
      defaultivalue: 1;
      minivalue: 0;
      maxivalue: 0;
-     defaultbvalue: True;
+     defaultbvalue: False;
      _type: tBoolean),
 
     (name: 'optpdfexportsize';
