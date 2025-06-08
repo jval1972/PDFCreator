@@ -4,7 +4,14 @@ interface
 
 uses
   pdfexport;
-  
+
+const
+  {$IFDEF CRRZ2PDF}
+  DEF_APPNAME = 'CRRZ2PDF';
+  {$ELSE}
+  DEF_APPNAME = 'Comic PDFCreator';
+  {$ENDIF}
+
 type
   ttype_t = (tString255, tInteger, tBoolean, tGroup);
 

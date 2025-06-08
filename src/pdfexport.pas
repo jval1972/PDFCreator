@@ -100,7 +100,7 @@ begin
   obPDF.DefaultPageLandscape := false;
   obPDF.CompressionMethod := cmFlateDecode;
   obPDF.ForceJPEGCompression := 0;
-  obPDF.Info.Creator := 'PDFCreator';
+  obPDF.Info.Creator := DEF_APPNAME;
 
   m := TMemoryStream.Create;
   for i := 0 to l.Count - 1 do
@@ -228,7 +228,7 @@ begin
   obPDF.DefaultPageLandscape := false;
   obPDF.CompressionMethod := cmFlateDecode;
   obPDF.ForceJPEGCompression := 0;
-  obPDF.Info.Creator := 'PDFCreator';
+  obPDF.Info.Creator := DEF_APPNAME;
 
   m := TMemoryStream.Create;
   for i := 0 to l.Count - 1 do
