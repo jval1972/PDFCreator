@@ -248,6 +248,15 @@ var
   isnum: boolean;
   mx: integer;
   n1, n2: integer;
+
+  function _sort_default(const ss1, ss2: string): Integer;
+  begin
+    if List.CaseSensitive then
+      Result := AnsiCompareStr(ss1, ss2)
+    else
+      Result := AnsiCompareText(ss1, ss2);
+  end;
+
 begin
   s1 := List.Strings[Index1];
   s2 := List.Strings[Index2];
@@ -260,10 +269,7 @@ begin
 
   if (s1 = '') or (s2 = '') then
   begin
-    if List.CaseSensitive then
-      Result := AnsiCompareStr(s1, s2)
-    else
-      Result := AnsiCompareText(s1, s2);
+    Result := _sort_default(s1, s2);
     Exit;
   end;
 
@@ -320,22 +326,13 @@ begin
         Result := 1;
     end
     else
-    begin
-      if List.CaseSensitive then
-        Result := AnsiCompareStr(l1.Strings[i], l2.Strings[i])
-      else
-        Result := AnsiCompareText(l1.Strings[i], l2.Strings[i]);
-    end;
+      Result := _sort_default(l1.Strings[i], l2.Strings[i]);
     if Result <> 0 then
       Break;
   end;
   if Result = 0 then
-  begin
-    if List.CaseSensitive then
-      Result := AnsiCompareStr(s1, s2)
-    else
-      Result := AnsiCompareText(s1, s2);
-  end;
+    Result := _sort_default(s1, s2);
+
   l1.Free;
   l2.Free;
 end;
