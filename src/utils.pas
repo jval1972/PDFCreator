@@ -246,7 +246,7 @@ var
   l1, l2: TStringList;
   i: integer;
   isnum: boolean;
-  mx: integer;
+  mn: integer;
   n1, n2: integer;
 
   function _sort_default(const ss1, ss2: string): Integer;
@@ -308,13 +308,13 @@ begin
     l2.Add(buf);
 
   if l1.Count > l2.Count then
-    mx := l1.Count
+    mn := l2.Count
   else
-    mx := l2.Count;
+    mn := l1.Count;
 
   Result := 0;
 
-  for i := 0 to mx - 1 do
+  for i := 0 to mn - 1 do
   begin
     if IsNumeric(l1.Strings[i]) and IsNumeric(l2.Strings[i]) then
     begin
@@ -330,6 +330,7 @@ begin
     if Result <> 0 then
       Break;
   end;
+
   if Result = 0 then
     Result := _sort_default(s1, s2);
 
