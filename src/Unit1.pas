@@ -108,6 +108,7 @@ type
     procedure PasteJPGClick(Sender: TObject);
     procedure Exit1Click(Sender: TObject);
     procedure About1Click(Sender: TObject);
+    procedure CopyClick(Sender: TObject);
   private
     { Private declarations }
     frontpage, backpage: string;
@@ -984,6 +985,34 @@ begin
         [DEF_APPNAME, I_VersionBuilt])),
       PChar(DEF_APPNAME),
       MB_OK or MB_ICONINFORMATION or MB_APPLMODAL);
+end;
+
+procedure TForm1.CopyClick(Sender: TObject);
+var
+  idx: integer;
+  fname: string;
+  bm: TBitmap;
+begin
+  idx := ImageListBox1.SelectedItemIndex;
+  if idx  < 0 then
+    Exit;
+
+  fname := ImageListBox1.Items[idx].Location;
+  if fname = '' then
+    Exit;
+
+  if not FileExists(fname) then
+    Exit;
+
+  bm := LoadBitmapFromFile(fname);
+  if bm <> nil then
+  begin
+    try
+      Clipboard.Assign(bm);
+    finally
+      bm.Free;
+    end;
+  end;
 end;
 
 end.

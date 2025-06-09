@@ -5173,6 +5173,7 @@ object Form1: TForm1
     end
     object Copy2: TMenuItem
       Caption = 'Copy'
+      OnClick = CopyClick
     end
     object N7: TMenuItem
       Caption = '-'
@@ -5234,6 +5235,7 @@ object Form1: TForm1
       object Copy1: TMenuItem
         Caption = 'Copy'
         ShortCut = 16451
+        OnClick = CopyClick
       end
       object N8: TMenuItem
         Caption = '-'
