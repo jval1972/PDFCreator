@@ -42,10 +42,11 @@ var
   optzipcompression: Integer = Ord(clFastest);
 
 const
-  NUMDEFAULTS = 8;
+  NUMDEFAULTS = {$IFDEF CRRZ2PDF}5{$ELSE}9{$ENDIF};
 
   defaults: array[0..NUMDEFAULTS - 1] of default_t = (
-    (name: 'General';
+  {$IFNDEF CRRZ2PDF}
+    (name: '[UI_OPTIONS]';
      location: nil;
      setable: False;
      defaultsvalue: '';
@@ -84,6 +85,17 @@ const
      maxivalue: 0;
      defaultbvalue: True;
      _type: tBoolean),
+  {$ENDIF}
+
+    (name: '[ENGINE_OPTIONS]';
+     location: nil;
+     setable: False;
+     defaultsvalue: '';
+     defaultivalue: 0;
+     minivalue: 0;
+     maxivalue: 0;
+     defaultbvalue: False;
+     _type: tGroup),
 
     (name: 'optjpegcompression';
      location: @optjpegcompression;

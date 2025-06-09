@@ -39,12 +39,16 @@ uses
   ZLibDelphi in 'ZLibDelphi.pas',
   xTIFF in 'xTIFF.pas';
 
+const
+  s_iniFile = 'CBRZ2PDF.ini';
+
 var
   i, j: integer;
   l, l2: TStringList;
   s, s2, ext, path, tpath: string;
 begin
-  { TODO -oUser -cConsole Main : Insert code here }
+  LoadDefaults(ExtractFilePath(ParamStr(0)) + s_iniFile);
+
   l := TStringList.Create;
 
   for i := 1 to ParamCount do
@@ -103,24 +107,28 @@ begin
       l2.Free;
     end;
   end;
+
   if l.Count = 0 then
   begin
     writeln('CBRZ2PDF v.1.0.');
     writeln('Please specify in command line the CBR/CBZ you want to convert to PDF');
-    readln;
-    l.Free;
-    Halt(0);
-  end;
-
-  for i := 0 to l.Count - 1 do
+  end
+  else
   begin
-    s := l.Strings[i];
-    s2 := ChangeFileExt(s, '.pdf');
-    write('Converting ' + ExtractFileName(s) + '...');
-    if CBRZ2PDFConv(s, s2) then
-      writeln('...Done!')
-    else
-      writeln('...Failed!')
+    if l.Count > 1 then
+      writeln('Converting ', l.Count, ' files:');
+    for i := 0 to l.Count - 1 do
+    begin
+      s := l.Strings[i];
+      s2 := ChangeFileExt(s, '.pdf');
+      write('Converting ' + ExtractFileName(s) + '...');
+      if CBRZ2PDFConv(s, s2) then
+        writeln('...Done!')
+      else
+        writeln('...Failed!')
+    end;
   end;
   l.Free;
+
+  SaveDefaults(ExtractFilePath(ParamStr(0)) + s_iniFile);
 end.
