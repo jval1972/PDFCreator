@@ -124,8 +124,8 @@ begin
         Writeln('  -', defaults[i].name, defaults[i].helptext: 22 - Length(defaults[i].name) + Length(defaults[i].helptext));
     writeln;
     writeln('Supported Files:');
-    writeln('  CBR/RAR:  RAR archieves');
-    writeln('  CBZ/ZIP:  ZIP archieves');
+    writeln('  CBR/RAR:  RAR archives');
+    writeln('  CBZ/ZIP:  ZIP archives');
     writeln('  TXT:      Text file containing the CBR/RAR/CBZ/ZIP filenames to convert');
     writeln;
     writeln('You can also use wildcards or directory names.');
