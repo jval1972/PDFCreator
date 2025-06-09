@@ -89,7 +89,7 @@ const
      location: @optjpegcompression;
      setable: True;
      defaultsvalue: '';
-     defaultivalue: 100;
+     defaultivalue: MAX_JPEG_COMPRESSION;
      minivalue: MIN_JPEG_COMPRESSION;
      maxivalue: MAX_JPEG_COMPRESSION;
      defaultbvalue: True;
