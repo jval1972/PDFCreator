@@ -16,11 +16,20 @@ const
   MIN_JPEG_COMPRESSION = 75;
   MAX_JPEG_COMPRESSION = 100;
 
+const
+  {$IFDEF CRRZ2PDF}
+  COPYRIGHT_ABOUT = 'Copyright 2025, jvalavanis@gmail.com';
+  {$ELSE}
+  COPYRIGHT_ABOUT = '© 2025, jvalavanis@gmail.com';
+  {$ENDIF}
+
+
 type
   ttype_t = (tString255, tInteger, tBoolean, tGroup);
 
   default_t = record
     name: string;
+    helptext: string;
     location: pointer;
     setable: boolean;
     defaultsvalue: string;
@@ -42,11 +51,12 @@ var
   optzipcompression: Integer = Ord(clFastest);
 
 const
-  NUMDEFAULTS = {$IFDEF CRRZ2PDF}5{$ELSE}9{$ENDIF};
+  NUMDEFAULTS = {$IFDEF CRRZ2PDF}4{$ELSE}9{$ENDIF};
 
   defaults: array[0..NUMDEFAULTS - 1] of default_t = (
   {$IFNDEF CRRZ2PDF}
     (name: 'UI_OPTIONS';
+     helptext: '';
      location: nil;
      setable: False;
      defaultsvalue: '';
@@ -57,6 +67,7 @@ const
      _type: tGroup),
 
     (name: 'optSetImageCaption';
+     helptext: '';
      location: @optSetImageCaption;
      setable: True;
      defaultsvalue: '';
@@ -67,6 +78,7 @@ const
      _type: tBoolean),
 
     (name: 'optNoExt';
+     helptext: '';
      location: @optNoExt;
      setable: True;
      defaultsvalue: '';
@@ -77,6 +89,7 @@ const
      _type: tBoolean),
 
     (name: 'optSetImageHint';
+     helptext: '';
      location: @optSetImageHint;
      setable: True;
      defaultsvalue: '';
@@ -88,6 +101,7 @@ const
   {$ENDIF}
 
     (name: 'ENGINE_OPTIONS';
+     helptext: '';
      location: nil;
      setable: False;
      defaultsvalue: '';
@@ -97,7 +111,21 @@ const
      defaultbvalue: False;
      _type: tGroup),
 
+  {$IFNDEF CRRZ2PDF}
+    (name: 'optzipcompression';
+     helptext: 'Set CBZ compression level [0..3]';
+     location: @optzipcompression;
+     setable: True;
+     defaultsvalue: '';
+     defaultivalue: Ord(clFastest);
+     minivalue: Ord(clNone);
+     maxivalue: Ord(clMax);
+     defaultbvalue: True;
+     _type: tInteger),
+  {$ENDIF}
+
     (name: 'optjpegcompression';
+     helptext: 'Set the JPG compression [75..100] (75: Low quality, 100: Best)';
      location: @optjpegcompression;
      setable: True;
      defaultsvalue: '';
@@ -108,6 +136,7 @@ const
      _type: tInteger),
 
     (name: 'optautosplitimages';
+     helptext: 'Automatically split wide images';
      location: @optautosplitimages;
      setable: True;
      defaultsvalue: '';
@@ -118,22 +147,13 @@ const
      _type: tBoolean),
 
     (name: 'optpdfexportsize';
+     helptext: 'Page size [0..3] (0: Max W, 1: Max H, 2: Max W & H, 3: Source)';
      location: @optpdfexportsize;
      setable: True;
      defaultsvalue: '';
      defaultivalue: PDFE_MAXWIDTH;
      minivalue: PDFE_START;
      maxivalue: PDFE_END;
-     defaultbvalue: True;
-     _type: tInteger),
-
-    (name: 'optzipcompression';
-     location: @optzipcompression;
-     setable: True;
-     defaultsvalue: '';
-     defaultivalue: PDFE_MAXWIDTH;
-     minivalue: Ord(clNone);
-     maxivalue: Ord(clMax);
      defaultbvalue: True;
      _type: tInteger)
 
@@ -147,6 +167,55 @@ implementation
 
 uses
   Classes, SysUtils, utils;
+
+function M_CheckParm(const parm: string): integer;
+var
+  i: integer;
+begin
+  for i := 1 to ParamCount do
+    if LowerCase(parm) = LowerCase(ParamStr(i)) then
+    begin
+      Result := i;
+      Exit;
+    end;
+  Result := -1;
+end;
+
+procedure LoadDefaultsFromCommandLine;
+var
+  i: integer;
+  pd: Pdefault_t;
+  p: integer;
+begin
+  pd := @defaults[0];
+  for i := 0 to NUMDEFAULTS - 1 do
+  begin
+    if defaults[i].setable then
+    begin
+      p := M_CheckParm('-' + pd.name);
+      if p > 0 then
+        if p < ParamCount then
+        begin
+          if pd._type = tInteger then
+          begin
+            PInteger(pd.location)^ := StrToIntDef(ParamStr(p + 1), pd.defaultivalue);
+            if pd.minivalue < pd.maxivalue then
+            begin
+              if PInteger(pd.location)^ < pd.minivalue then
+                PInteger(pd.location)^ := pd.minivalue
+              else if PInteger(pd.location)^ > pd.maxivalue then
+                PInteger(pd.location)^ := pd.maxivalue;
+            end;
+          end
+          else if pd._type = tBoolean then
+             PBoolean(pd.location)^ := StrToIntDef(ParamStr(p + 1), pd.defaultivalue) <> 0
+          else if pd._type = tString255 then
+             PString255(pd.location)^ := ParamStr(p + 1);
+        end;
+    end;
+    inc(pd);
+  end;
+end;
 
 procedure LoadDefaults(const fname: string);
 var
@@ -208,6 +277,8 @@ begin
       s.Free;
     end;
   end;
+
+  LoadDefaultsFromCommandLine;
 end;
 
 procedure SaveDefaults(const fname: string);

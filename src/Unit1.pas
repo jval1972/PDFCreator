@@ -981,8 +981,8 @@ procedure TForm1.About1Click(Sender: TObject);
 begin
     MessageBox(
       Handle,
-      PChar(Format('%s'#13#10'Version %s'#13#10#13#10'A tool to create comic PDF files.'#13#10'© 2025, jvalavanis@gmail.com',
-        [DEF_APPNAME, I_VersionBuilt])),
+      PChar(Format('%s'#13#10'Version %s'#13#10#13#10'A tool to create comic PDF files.'#13#10'%s',
+        [DEF_APPNAME, I_VersionBuilt, COPYRIGHT_ABOUT])),
       PChar(DEF_APPNAME),
       MB_OK or MB_ICONINFORMATION or MB_APPLMODAL);
 end;

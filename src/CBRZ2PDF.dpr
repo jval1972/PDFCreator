@@ -47,6 +47,8 @@ var
   l, l2: TStringList;
   s, s2, ext, path, tpath: string;
 begin
+  writeln('CBRZ2PDF v.1.0, ', COPYRIGHT_ABOUT);
+
   LoadDefaults(ExtractFilePath(ParamStr(0)) + s_iniFile);
 
   l := TStringList.Create;
@@ -110,8 +112,23 @@ begin
 
   if l.Count = 0 then
   begin
-    writeln('CBRZ2PDF v.1.0.');
-    writeln('Please specify in command line the CBR/CBZ you want to convert to PDF');
+    writeln;
+    writeln('Please specify in command line the CBR/CBZ files you want to convert to PDF');
+    writeln;
+    writeln('Usage is:');
+    writeln('  CBRZ2PDF [Options] File1 File2 [...] Dir1 Dir2 [...] Mask1 Mask2 [...]');
+    writeln;
+    writeln('Options:');
+    for i := 0 to NUMDEFAULTS - 1 do
+      if defaults[i].setable then
+        Writeln('  -', defaults[i].name, defaults[i].helptext: 22 - Length(defaults[i].name) + Length(defaults[i].helptext));
+    writeln;
+    writeln('Supported Files:');
+    writeln('  CBR/RAR:  RAR archieves');
+    writeln('  CBZ/ZIP:  ZIP archieves');
+    writeln('  TXT:      Text file containing the CBR/RAR/CBZ/ZIP filenames to convert');
+    writeln;
+    writeln('You can also use wildcards or directory names.');
   end
   else
   begin
