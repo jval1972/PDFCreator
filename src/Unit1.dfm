@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 246
-  Top = 78
+  Left = 112
+  Top = 79
   Width = 1024
   Height = 600
   Caption = 'Comic PDF Creator'
@@ -1044,6 +1044,7 @@ object Form1: TForm1
     0000000000000000000000000000000000000000000000000000000000000000
     0000000000000000000000000000000000000000000000000000000000000000
     00000000000000000000000000000000000000000000000000000000}
+  Menu = MainMenu1
   OldCreateOrder = False
   ShowHint = True
   WindowState = wsMaximized
@@ -1060,7 +1061,7 @@ object Form1: TForm1
     Align = alTop
     Caption = ' '
     TabOrder = 0
-    object SpeedButton1: TSpeedButton
+    object NewSpeedButton: TSpeedButton
       Left = 8
       Top = 8
       Width = 89
@@ -1671,9 +1672,9 @@ object Form1: TForm1
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
       Layout = blGlyphTop
-      OnClick = SpeedButton1Click
+      OnClick = NewClick
     end
-    object SpeedButton2: TSpeedButton
+    object OpenImgSpeedButton: TSpeedButton
       Left = 104
       Top = 8
       Width = 89
@@ -2284,9 +2285,9 @@ object Form1: TForm1
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
       Layout = blGlyphTop
-      OnClick = SpeedButton2Click
+      OnClick = OpenImgClick
     end
-    object SpeedButton3: TSpeedButton
+    object ImportPDFSpeedButton: TSpeedButton
       Left = 200
       Top = 8
       Width = 89
@@ -2897,9 +2898,9 @@ object Form1: TForm1
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
       Layout = blGlyphTop
-      OnClick = SpeedButton3Click
+      OnClick = ImportPDFClick
     end
-    object SpeedButton4: TSpeedButton
+    object SaveCBZSpeedButton: TSpeedButton
       Left = 296
       Top = 8
       Width = 89
@@ -3510,9 +3511,9 @@ object Form1: TForm1
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
       Layout = blGlyphTop
-      OnClick = SpeedButton4Click
+      OnClick = SaveCBZClick
     end
-    object SpeedButton5: TSpeedButton
+    object SavePDFSpeedButton: TSpeedButton
       Left = 392
       Top = 8
       Width = 89
@@ -4123,9 +4124,9 @@ object Form1: TForm1
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
       Layout = blGlyphTop
-      OnClick = SpeedButton5Click
+      OnClick = SavePDFClick
     end
-    object SpeedButton6: TSpeedButton
+    object ReverseSpeedButton: TSpeedButton
       Left = 488
       Top = 8
       Width = 89
@@ -4736,7 +4737,7 @@ object Form1: TForm1
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
       Layout = blGlyphTop
-      OnClick = SpeedButton6Click
+      OnClick = ReverseClick
     end
     object Panel4: TPanel
       Left = 656
@@ -4797,7 +4798,7 @@ object Form1: TForm1
     Left = 0
     Top = 129
     Width = 1008
-    Height = 432
+    Height = 412
     Align = alClient
     BevelOuter = bvNone
     Caption = ' '
@@ -4806,7 +4807,7 @@ object Form1: TForm1
       Left = 137
       Top = 0
       Width = 871
-      Height = 432
+      Height = 412
       ScrollType = stNormal
       ZoomAnimationFactor = 1.500000000000000000
       Items = <>
@@ -4968,7 +4969,7 @@ object Form1: TForm1
       TMSStyle = 21
       object ProgressPanel: TPanel
         Left = 0
-        Top = 382
+        Top = 362
         Width = 871
         Height = 50
         Align = alBottom
@@ -4995,7 +4996,7 @@ object Form1: TForm1
       Left = 0
       Top = 0
       Width = 137
-      Height = 432
+      Height = 412
       Align = alLeft
       Caption = ' '
       TabOrder = 1
@@ -5073,7 +5074,7 @@ object Form1: TForm1
         Left = 1
         Top = 313
         Width = 135
-        Height = 118
+        Height = 98
         Align = alClient
         Caption = ' '
         TabOrder = 2
@@ -5090,7 +5091,7 @@ object Form1: TForm1
             Top = 0
             Width = 113
             Height = 17
-            Caption = 'Auto split images'
+            Caption = 'Split wide images'
             TabOrder = 0
             OnClick = SplitCheckBoxClick
           end
@@ -5145,7 +5146,7 @@ object Form1: TForm1
     Top = 273
   end
   object ListPopupMenu: TPopupMenu
-    OnPopup = ListPopupMenuPopup
+    OnPopup = CheckEditMenuEnable
     Left = 185
     Top = 233
     object DeleteItem1: TMenuItem
@@ -5170,13 +5171,99 @@ object Form1: TForm1
     object N2: TMenuItem
       Caption = '-'
     end
-    object PastePNG1: TMenuItem
-      Caption = 'Paste PNG'
-      OnClick = PastePNG1Click
+    object Copy2: TMenuItem
+      Caption = 'Copy'
     end
-    object PasteJPG1: TMenuItem
+    object N7: TMenuItem
+      Caption = '-'
+    end
+    object PastePNG2: TMenuItem
+      Caption = 'Paste PNG'
+      OnClick = PastePNGClick
+    end
+    object PasteJPG2: TMenuItem
       Caption = 'Paste JPG'
-      OnClick = PasteJPG1Click
+      OnClick = PasteJPGClick
+    end
+  end
+  object MainMenu1: TMainMenu
+    Left = 521
+    Top = 193
+    object File1: TMenuItem
+      Caption = 'File'
+      object New1: TMenuItem
+        Caption = 'New'
+        ShortCut = 16462
+        OnClick = NewClick
+      end
+      object N3: TMenuItem
+        Caption = '-'
+      end
+      object OpenImages1: TMenuItem
+        Caption = 'Open Images'
+        ShortCut = 16463
+        OnClick = OpenImgClick
+      end
+      object ImportPDF1: TMenuItem
+        Caption = 'Import PDF'
+        OnClick = ImportPDFClick
+      end
+      object N4: TMenuItem
+        Caption = '-'
+      end
+      object SaveCBZ1: TMenuItem
+        Caption = 'Save CBZ'
+        OnClick = SaveCBZClick
+      end
+      object SavePDF1: TMenuItem
+        Caption = 'Save PDF'
+        OnClick = SavePDFClick
+      end
+      object N5: TMenuItem
+        Caption = '-'
+      end
+      object Exit1: TMenuItem
+        Caption = 'Exit'
+        ShortCut = 16472
+        OnClick = Exit1Click
+      end
+    end
+    object Edit1: TMenuItem
+      Caption = 'Edit'
+      OnClick = CheckEditMenuEnable
+      object Copy1: TMenuItem
+        Caption = 'Copy'
+        ShortCut = 16451
+      end
+      object N8: TMenuItem
+        Caption = '-'
+      end
+      object PastePNG1: TMenuItem
+        Caption = 'Paste PNG'
+        ShortCut = 16464
+        OnClick = PastePNGClick
+      end
+      object PasteJPG1: TMenuItem
+        Caption = 'Paste JPG'
+        ShortCut = 16470
+        OnClick = PasteJPGClick
+      end
+      object N6: TMenuItem
+        Caption = '-'
+      end
+      object ReverseOrder1: TMenuItem
+        Caption = 'Reverse Order'
+        ShortCut = 16466
+        OnClick = ReverseClick
+      end
+    end
+    object Help1: TMenuItem
+      Caption = 'Help'
+      object About1: TMenuItem
+        Caption = 'About'
+        ShortCut = 112
+        OnClick = About1Click
+      end
     end
   end
 end

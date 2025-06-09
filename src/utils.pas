@@ -44,6 +44,8 @@ function CBRZ2PDFConv(const fin, fout: string): boolean;
 
 function myfindfiles(const mask: string): TStringList;
 
+function I_VersionBuilt(fname: string = ''): string;
+
 implementation
 
 uses
@@ -485,6 +487,38 @@ begin
       Result.Add(path + sr.Name);
     FindClose(sr);
   end;
+end;
+
+function I_VersionBuilt(fname: string = ''): string;
+var
+  vsize: LongWord;
+  zero: LongWord;
+  buffer: PByteArray;
+  res: pointer;
+  len: LongWord;
+  i: integer;
+begin
+  if fname = '' then
+    fname := ParamStr(0);
+  vsize := GetFileVersionInfoSize(PChar(fname), zero);
+  if vsize = 0 then
+  begin
+    Result := '';
+    Exit;
+  end;
+
+  GetMem(buffer, vsize + 1);
+  GetFileVersionInfo(PChar(fname), 0, vsize, buffer);
+  VerQueryValue(buffer, '\StringFileInfo\040904E4\FileVersion', res, len);
+  Result := '';
+  for i := 0 to len - 1 do
+  begin
+    if PChar(res)^ = #0 then
+      break;
+    Result := Result + PChar(res)^;
+    res := pointer(LongWord(res) + 1);
+  end;
+  FreeMem(pointer(buffer), vsize + 1);
 end;
 
 end.

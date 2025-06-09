@@ -10,9 +10,9 @@ uses
 type
   TForm1 = class(TForm)
     Panel1: TPanel;
-    SpeedButton1: TSpeedButton;
-    SpeedButton2: TSpeedButton;
-    SpeedButton3: TSpeedButton;
+    NewSpeedButton: TSpeedButton;
+    OpenImgSpeedButton: TSpeedButton;
+    ImportPDFSpeedButton: TSpeedButton;
     Panel2: TPanel;
     ImageListBox1: TAdvSmoothImageListBox;
     Panel3: TPanel;
@@ -24,14 +24,14 @@ type
     Label4: TLabel;
     Label5: TLabel;
     OpenDialog1: TOpenDialog;
-    SpeedButton4: TSpeedButton;
-    SpeedButton5: TSpeedButton;
+    SaveCBZSpeedButton: TSpeedButton;
+    SavePDFSpeedButton: TSpeedButton;
     SavePDFDialog1: TSaveDialog;
     ProgressPanel: TPanel;
     Label6: TLabel;
     ProgressBar1: TProgressBar;
     OpenDialog2: TOpenDialog;
-    SpeedButton6: TSpeedButton;
+    ReverseSpeedButton: TSpeedButton;
     Panel5: TPanel;
     BackPaintBox: TPaintBox;
     Panel6: TPanel;
@@ -52,20 +52,42 @@ type
     Rotate90Clockwise1: TMenuItem;
     Rotate90Counterclockwise1: TMenuItem;
     N2: TMenuItem;
+    PastePNG2: TMenuItem;
+    PasteJPG2: TMenuItem;
+    MainMenu1: TMainMenu;
+    File1: TMenuItem;
+    New1: TMenuItem;
+    OpenImages1: TMenuItem;
+    ImportPDF1: TMenuItem;
+    N3: TMenuItem;
+    N4: TMenuItem;
+    SaveCBZ1: TMenuItem;
+    SavePDF1: TMenuItem;
+    N5: TMenuItem;
+    Exit1: TMenuItem;
+    Edit1: TMenuItem;
+    Copy1: TMenuItem;
     PastePNG1: TMenuItem;
+    N6: TMenuItem;
+    ReverseOrder1: TMenuItem;
+    Help1: TMenuItem;
+    About1: TMenuItem;
+    Copy2: TMenuItem;
+    N7: TMenuItem;
     PasteJPG1: TMenuItem;
+    N8: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure SpeedButton2Click(Sender: TObject);
+    procedure OpenImgClick(Sender: TObject);
     procedure ImageListBox1ItemHint(Sender: TObject; itemindex: Integer;
       var hint: String);
     procedure ImageListBox1ItemSelect(Sender: TObject; itemindex: Integer);
-    procedure SpeedButton1Click(Sender: TObject);
+    procedure NewClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
-    procedure SpeedButton3Click(Sender: TObject);
-    procedure SpeedButton4Click(Sender: TObject);
-    procedure SpeedButton5Click(Sender: TObject);
-    procedure SpeedButton6Click(Sender: TObject);
+    procedure ImportPDFClick(Sender: TObject);
+    procedure SaveCBZClick(Sender: TObject);
+    procedure SavePDFClick(Sender: TObject);
+    procedure ReverseClick(Sender: TObject);
     procedure FrontPaintBoxPaint(Sender: TObject);
     procedure FrontPaintBoxDblClick(Sender: TObject);
     procedure BackPaintBoxPaint(Sender: TObject);
@@ -77,13 +99,15 @@ type
       Y: Integer);
     procedure ImageListBox1ItemStartDrag(Sender: TObject;
       ItemIndex: Integer; var AllowDrag: Boolean);
-    procedure ListPopupMenuPopup(Sender: TObject);
+    procedure CheckEditMenuEnable(Sender: TObject);
     procedure DeleteItem1Click(Sender: TObject);
     procedure Rotate1801Click(Sender: TObject);
     procedure Rotate90Clockwise1Click(Sender: TObject);
     procedure Rotate90Counterclockwise1Click(Sender: TObject);
-    procedure PastePNG1Click(Sender: TObject);
-    procedure PasteJPG1Click(Sender: TObject);
+    procedure PastePNGClick(Sender: TObject);
+    procedure PasteJPGClick(Sender: TObject);
+    procedure Exit1Click(Sender: TObject);
+    procedure About1Click(Sender: TObject);
   private
     { Private declarations }
     frontpage, backpage: string;
@@ -329,7 +353,7 @@ begin
   ImageListBox1.SetFocus;
 end;
 
-procedure TForm1.SpeedButton2Click(Sender: TObject);
+procedure TForm1.OpenImgClick(Sender: TObject);
 begin
   if OpenDialog1.Execute then
     AddFilesToList(OpenDialog1.Files);
@@ -453,7 +477,7 @@ begin
   ShowSelectedImgInfo(Itemindex);
 end;
 
-procedure TForm1.SpeedButton1Click(Sender: TObject);
+procedure TForm1.NewClick(Sender: TObject);
 begin
   ImageListBox1.Items.BeginUpdate;
   ImageListBox1.Items.Clear;
@@ -503,7 +527,7 @@ end;
 const
   PDFPROGRESSMAX = 200;
 
-procedure TForm1.SpeedButton3Click(Sender: TObject);
+procedure TForm1.ImportPDFClick(Sender: TObject);
 var
   i: integer;
   pdf: TPDF2Jpeg;
@@ -560,7 +584,7 @@ begin
   end;
 end;
 
-procedure TForm1.SpeedButton4Click(Sender: TObject);
+procedure TForm1.SaveCBZClick(Sender: TObject);
 var
   pk3: TWZipFile;
   l: TStringList;
@@ -584,7 +608,7 @@ begin
   end;
 end;
 
-procedure TForm1.SpeedButton5Click(Sender: TObject);
+procedure TForm1.SavePDFClick(Sender: TObject);
 var
   l: TStringList;
 begin
@@ -603,7 +627,7 @@ begin
   end;
 end;
 
-procedure TForm1.SpeedButton6Click(Sender: TObject);
+procedure TForm1.ReverseClick(Sender: TObject);
 var
   l: TStringList;
   i: integer;
@@ -776,7 +800,7 @@ begin
   AllowDrag := dragitem >= 0;
 end;
 
-procedure TForm1.ListPopupMenuPopup(Sender: TObject);
+procedure TForm1.CheckEditMenuEnable(Sender: TObject);
 var
   sel: integer;
   pp: TPoint;
@@ -789,11 +813,15 @@ begin
     ShowSelectedImgInfo(sel);
   end;
   DeleteItem1.Enabled := ImageListBox1.SelectedItemIndex >= 0;
+  Copy1.Enabled := ImageListBox1.SelectedItemIndex >= 0;
+  Copy2.Enabled := ImageListBox1.SelectedItemIndex >= 0;
   Rotate1801.Enabled := ImageListBox1.SelectedItemIndex >= 0;
   Rotate90Clockwise1.Enabled := ImageListBox1.SelectedItemIndex >= 0;
   Rotate90Counterclockwise1.Enabled := ImageListBox1.SelectedItemIndex >= 0;
   PastePNG1.Enabled := IsClipboardFormatAvailable(CF_BITMAP);
+  PastePNG2.Enabled := PastePNG1.Enabled;
   PasteJPG1.Enabled := IsClipboardFormatAvailable(CF_BITMAP);
+  PasteJPG2.Enabled := PasteJPG1.Enabled;
 end;
 
 procedure TForm1.DeleteItem1Click(Sender: TObject);
@@ -933,14 +961,29 @@ begin
   Result := True;
 end;
 
-procedure TForm1.PastePNG1Click(Sender: TObject);
+procedure TForm1.PastePNGClick(Sender: TObject);
 begin
   PasteNewImageAs('.png');
 end;
 
-procedure TForm1.PasteJPG1Click(Sender: TObject);
+procedure TForm1.PasteJPGClick(Sender: TObject);
 begin
   PasteNewImageAs('.jpg');
+end;
+
+procedure TForm1.Exit1Click(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TForm1.About1Click(Sender: TObject);
+begin
+    MessageBox(
+      Handle,
+      PChar(Format('%s'#13#10'Version %s'#13#10#13#10'A tool to create comic PDF files.'#13#10'© 2025, jvalavanis@gmail.com',
+        [DEF_APPNAME, I_VersionBuilt])),
+      PChar(DEF_APPNAME),
+      MB_OK or MB_ICONINFORMATION or MB_APPLMODAL);
 end;
 
 end.
