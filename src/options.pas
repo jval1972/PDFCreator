@@ -46,7 +46,7 @@ const
 
   defaults: array[0..NUMDEFAULTS - 1] of default_t = (
   {$IFNDEF CRRZ2PDF}
-    (name: '[UI_OPTIONS]';
+    (name: 'UI_OPTIONS';
      location: nil;
      setable: False;
      defaultsvalue: '';
@@ -87,7 +87,7 @@ const
      _type: tBoolean),
   {$ENDIF}
 
-    (name: '[ENGINE_OPTIONS]';
+    (name: 'ENGINE_OPTIONS';
      location: nil;
      setable: False;
      defaultsvalue: '';
