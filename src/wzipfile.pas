@@ -118,7 +118,7 @@ type
 implementation
 
 uses
-  zlibpasEx;
+  options, zlibpasEx;
 
 { TWZipFile }
 
@@ -333,7 +333,7 @@ begin
 
   CompressedStream := TStringStream.Create('');
   try {+}
-    Compressor := TcompressionStream.Create(clDefault, CompressedStream);
+    Compressor := TcompressionStream.Create(TCompressionLevel(optzipcompression), CompressedStream);
     try {+}
       Compressor.Write(PChar(Value)^, Length(Value));
     finally

@@ -3,7 +3,7 @@ unit options;
 interface
 
 uses
-  pdfexport;
+  pdfexport, zlibpasEx;
 
 const
   {$IFDEF CRRZ2PDF}
@@ -35,9 +35,10 @@ var
   optjpegcompression: integer = 100;
   optautosplitimages: Boolean = False;
   optpdfexportsize: Integer = 0;
+  optzipcompression: Integer = Ord(clFastest);
 
 const
-  NUMDEFAULTS = 7;
+  NUMDEFAULTS = 8;
 
   defaults: array[0..NUMDEFAULTS - 1] of default_t = (
     (name: 'General';
@@ -107,6 +108,16 @@ const
      defaultivalue: PDFE_MAXWIDTH;
      minivalue: PDFE_START;
      maxivalue: PDFE_END;
+     defaultbvalue: True;
+     _type: tInteger),
+
+    (name: 'optzipcompression';
+     location: @optzipcompression;
+     setable: True;
+     defaultsvalue: '';
+     defaultivalue: PDFE_MAXWIDTH;
+     minivalue: Ord(clNone);
+     maxivalue: Ord(clMax);
      defaultbvalue: True;
      _type: tInteger)
 
