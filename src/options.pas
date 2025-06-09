@@ -12,6 +12,10 @@ const
   DEF_APPNAME = 'Comic PDFCreator';
   {$ENDIF}
 
+const
+  MIN_JPEG_COMPRESSION = 75;
+  MAX_JPEG_COMPRESSION = 100;
+
 type
   ttype_t = (tString255, tInteger, tBoolean, tGroup);
 
@@ -86,8 +90,8 @@ const
      setable: True;
      defaultsvalue: '';
      defaultivalue: 100;
-     minivalue: 75;
-     maxivalue: 100;
+     minivalue: MIN_JPEG_COMPRESSION;
+     maxivalue: MAX_JPEG_COMPRESSION;
      defaultbvalue: True;
      _type: tInteger),
 
