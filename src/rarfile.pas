@@ -177,7 +177,11 @@ end;
 
 function TRarFile.ExtractFiles(const alist: TStringList; const aalias: TStringList; const apath: string = ''): boolean;
 begin
-  Result := fRAR.ExtractArchiveEx(fFileName, apath, alist, aalias);
+  try
+    Result := fRAR.ExtractArchiveEx(fFileName, apath, alist, aalias);
+  except
+    Result := False;
+  end;
 end;
 
 end.

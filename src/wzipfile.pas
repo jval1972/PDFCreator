@@ -830,8 +830,11 @@ begin
       if (p <> nil) and (size > 0) then
       begin
         fs := TFileStream.Create(apath + aalias.Strings[i], fmCreate);
-        fs.Write(p^, size);
-        fs.Free;
+        try
+          fs.Write(p^, size);
+        finally
+          fs.Free;
+        end;
         FreeMem(p, size);
         Inc(cnt);
       end;

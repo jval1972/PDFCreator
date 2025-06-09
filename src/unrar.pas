@@ -1372,7 +1372,8 @@ var
   vExtractPath: string;
 begin
   vExtractPath := aExtractPath;
-  case (Length(vExtractPath) > 0) and (vExtractPath[Length(vExtractPath)] <> '\') of True: vExtractPath := vExtractPath + '\'; end;
+  if (Length(vExtractPath) > 0) and (vExtractPath[Length(vExtractPath)] <> '\') then
+    vExtractPath := vExtractPath + '\';
 
   {$IFDEF BazDebugWindow}
 //  debugString('aArchivePath', aArchivePath);
