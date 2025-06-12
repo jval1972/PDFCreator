@@ -51,10 +51,10 @@ var
   optzipcompression: Integer = Ord(clFastest);
 
 const
-  NUMDEFAULTS = {$IFDEF CRRZ2PDF}4{$ELSE}9{$ENDIF};
+  NUMDEFAULTS = {$IFDEF CRBZ2PDF}4{$ELSE}9{$ENDIF};
 
   defaults: array[0..NUMDEFAULTS - 1] of default_t = (
-  {$IFNDEF CRRZ2PDF}
+  {$IFNDEF CBRZ2PDF}
     (name: 'UI_OPTIONS';
      helptext: '';
      location: nil;
@@ -111,7 +111,7 @@ const
      defaultbvalue: False;
      _type: tGroup),
 
-  {$IFNDEF CRRZ2PDF}
+  {$IFNDEF CBRZ2PDF}
     (name: 'optzipcompression';
      helptext: 'Set CBZ compression level [0..3]';
      location: @optzipcompression;
