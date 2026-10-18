@@ -13,7 +13,7 @@ const
   {$ENDIF}
 
 const
-  MIN_JPEG_COMPRESSION = 75;
+  MIN_JPEG_COMPRESSION = 50;
   MAX_JPEG_COMPRESSION = 100;
 
 const

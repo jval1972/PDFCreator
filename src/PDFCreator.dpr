@@ -35,7 +35,8 @@ uses
   LibJpegDelphi in 'LibJpegDelphi.pas',
   LibTiffDelphi in 'LibTiffDelphi.pas',
   ZLibDelphi in 'ZLibDelphi.pas',
-  xTIFF in 'xTIFF.pas';
+  xTIFF in 'xTIFF.pas',
+  frm_options in 'frm_options.pas' {OptionsForm};
 
 {$R *.res}
 

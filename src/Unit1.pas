@@ -76,6 +76,9 @@ type
     N7: TMenuItem;
     PasteJPG1: TMenuItem;
     N8: TMenuItem;
+    N9: TMenuItem;
+    Options1: TMenuItem;
+    OptionsSpeedButton: TSpeedButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure OpenImgClick(Sender: TObject);
@@ -109,6 +112,7 @@ type
     procedure Exit1Click(Sender: TObject);
     procedure About1Click(Sender: TObject);
     procedure CopyClick(Sender: TObject);
+    procedure Options1Click(Sender: TObject);
   private
     { Private declarations }
     frontpage, backpage: string;
@@ -128,6 +132,7 @@ type
     function GetImageFilenames: TStringList;
     procedure RotateSelectedImage(const degrees: integer);
     function PasteNewImageAs(const ext: string): Boolean;
+    procedure RefreshView;
   public
     { Public declarations }
   end;
@@ -139,7 +144,7 @@ implementation
 
 uses
   utils, img_utils, options, pdfexport, webp, tmpfiles, pdf2jpg, wzipfile, 
-  img_names, rarfile;
+  img_names, rarfile, frm_options;
 
 {$R *.dfm}
 
@@ -640,6 +645,20 @@ begin
   l.Free;
 end;
 
+procedure TForm1.RefreshView;
+var
+  l: TStringList;
+  i: integer;
+begin
+  SplitCheckBox.Checked := optautosplitimages;
+
+  l := TStringList.Create;
+  for i := 0 to ImageListBox1.Items.Count - 1 do
+    l.Add(ImageListBox1.Items[i].Location);
+  AddFilesToList(l);
+  l.Free;
+end;
+
 procedure TForm1.ProgressStart(const cnt: integer);
 begin
   ProgressBar1.Min := 0;
@@ -1013,6 +1032,12 @@ begin
       bm.Free;
     end;
   end;
+end;
+
+procedure TForm1.Options1Click(Sender: TObject);
+begin
+  if ShowOptionsForm then
+    RefreshView;
 end;
 
 end.
